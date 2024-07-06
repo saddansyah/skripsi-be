@@ -1,0 +1,11 @@
+// Prisma Schema is used only for migration
+// The rest of queries is using SQL Raw Query (to improve performance)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
