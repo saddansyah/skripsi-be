@@ -6,6 +6,128 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique @db.VarChar(200)
+  name         String         @db.VarChar(100)
+  is_admin     Boolean
+  img          String
+  point        Int            @db.SmallInt
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  WasteCollect WasteCollect[]
+  WasteReport  WasteReport[]
+
+  @@map("users")
+}
+
+model WasteCluster {
+  id         Int              @id @default(autoincrement())
+  name       String           @db.VarChar(100)
+  created_at DateTime         @default(now())
+  updated_at DateTime         @updatedAt
+  container  WasteContainer[]
+
+  @@map("waste_clusters")
+}
+
+model WasteContainer {
+  id           Int            @id @default(autoincrement())
+  name         String         @db.VarChar(100)
+  rating       Float
+  max_kg       Float
+  max_vol      Float
+  lat          Float
+  long         Float
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  cluster      WasteCluster   @relation(fields: [cluster_id], references: [id])
+  cluster_id   Int
+  WasteCollect WasteCollect[]
+
+  @@map("waste_containers")
+}
+
+model WasteCollect {
+  id           Int            @id @default(autoincrement())
+  kg           Float
+  vol          Float
+  type         WasteType      @default(MIXED)
+  img          String
+  point        Int
+  info         String?
+  is_anonim    Boolean
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  user         User           @relation(fields: [user_id], references: [id])
+  user_id      String
+  container    WasteContainer @relation(fields: [container_id], references: [id])
+  container_id Int
+
+  @@map("waste_collects")
+}
+
+model WasteReport {
+  id         Int       @id @default(autoincrement())
+  lat        Float
+  long       Float
+  kg         Float
+  vol        Float
+  type       WasteType @default(MIXED)
+  img        String
+  point      Int
+  info       String?
+  is_anonim  Boolean
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  user       User      @relation(fields: [user_id], references: [id])
+  user_id    String
+
+  @@map("waste_reports")
+}
+
+model Quest {
+  id         Int       @id @default(autoincrement())
+  title      String    @db.VarChar(100)
+  desc       String
+  point      Int
+  type       QuestType
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  @@map("quests")
+}
+
+model Quiz {
+  id         Int      @id @default(autoincrement())
+  question   String
+  options    String
+  answer     String   @db.VarChar(100)
+  point      Int
+  img        String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("quizzes")
+}
+
+enum WasteType {
+  MIXED
+  B3
+  ORGANIK
+  GUNA_ULANG
+  DAUR_ULANG
+  RESIDU
+}
+
+enum QuestType {
+  RECYCLE
+  REUSE
+  REDUCE
+  OTHER
 }

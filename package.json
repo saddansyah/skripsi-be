@@ -3,14 +3,17 @@
   "version": "1.0.50",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "NODE_ENV=development bun --env-file:../.env.development run --watch src/index.ts",
-    "prod": "NODE_ENV=production bun --env-file:../.env.production run --watch src/index.ts",
-    "db-migrate-local": "bunx prisma migrate dev",
-    "db-migrate-prod": "bunx prisma migrate deploy",
-    "db-seed": "bunx prisma db seed"
+    "dev": "NODE_ENV=development dotenv -e .env.development -- bun run --watch src/index.ts",
+    "prod": "NODE_ENV=production dotenv -e .env.production -- bun run --watch src/index.ts",
+    "db:migrate": "dotenv -e .env.development -- bunx prisma migrate dev --name $NAME",
+    "db:migrate:create-only": "dotenv -e .env.development -- bunx prisma migrate dev --name $NAME --create-only",
+    "db:migrate:deploy": "dotenv -e .env.development -- bunx prisma migrate deploy",
+    "db:migrate:reset": "dotenv -e .env.development -- bunx prisma migrate reset",
+    "db:seed": "dotenv -e .env.development -- bunx prisma db seed"
   },
   "dependencies": {
     "@prisma/client": "^5.16.1",
+    "dotenv-cli": "^7.4.2",
     "elysia": "latest",
     "prisma": "^5.16.1"
   },
