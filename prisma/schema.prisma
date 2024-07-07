@@ -17,11 +17,11 @@ model User {
   name         String         @db.VarChar(100)
   is_admin     Boolean
   img          String
-  point        Int            @db.SmallInt
+  point        Int            @default(0) @db.SmallInt
   created_at   DateTime       @default(now())
   updated_at   DateTime       @updatedAt
-  WasteCollect WasteCollect[]
-  WasteReport  WasteReport[]
+  waste_collect WasteCollect[]
+  waste_report  WasteReport[]
 
   @@map("users")
 }
@@ -37,18 +37,20 @@ model WasteCluster {
 }
 
 model WasteContainer {
-  id           Int            @id @default(autoincrement())
-  name         String         @db.VarChar(100)
+  id           Int             @id @default(autoincrement())
+  name         String          @db.VarChar(100)
+  type         ContainerType   @default(TONG)
   rating       Float
   max_kg       Float
   max_vol      Float
   lat          Float
   long         Float
-  created_at   DateTime       @default(now())
-  updated_at   DateTime       @updatedAt
-  cluster      WasteCluster   @relation(fields: [cluster_id], references: [id])
+  status       ContainerStatus @default(PENDING)
+  created_at   DateTime        @default(now())
+  updated_at   DateTime        @updatedAt
+  cluster      WasteCluster    @relation(fields: [cluster_id], references: [id])
   cluster_id   Int
-  WasteCollect WasteCollect[]
+  waste_collect WasteCollect[]
 
   @@map("waste_containers")
 }
@@ -130,4 +132,16 @@ enum QuestType {
   REUSE
   REDUCE
   OTHER
+}
+
+enum ContainerType {
+  DEPO
+  TONG
+  OTHER
+}
+
+enum ContainerStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
