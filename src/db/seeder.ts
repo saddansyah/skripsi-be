@@ -1,6 +1,6 @@
-import { PrismaClient, Prisma } from '@prisma/client'
+import db from '../db/instance'
+import { Prisma } from '@prisma/client';
 
-const prisma = new PrismaClient();
 const seed = async () => {
 
     // seed cluster and users
@@ -34,16 +34,16 @@ const seed = async () => {
         }
     ] satisfies Prisma.WasteClusterCreateInput[]
 
-    const admin = await prisma.user.create({
+    const admin = await db.user.create({
         data: users[0],
     });
-    const user1 = await prisma.user.create({
+    const user1 = await db.user.create({
         data: users[1],
     });
-    const user2 = await prisma.user.create({
+    const user2 = await db.user.create({
         data: users[2],
     });
-    const cluster_teknik = await prisma.wasteCluster.create({
+    const cluster_teknik = await db.wasteCluster.create({
         data: waste_clusters[0],
     });
 
@@ -78,7 +78,7 @@ const seed = async () => {
 
     const cid: Array<number> = [];
     for (const c of waste_containers) {
-        const _c = await prisma.wasteContainer.create({
+        const _c = await db.wasteContainer.create({
             data: c,
         });
 
@@ -120,7 +120,7 @@ const seed = async () => {
     ] satisfies Prisma.WasteCollectCreateInput[]
 
     for (const c of waste_collects) {
-        await prisma.wasteCollect.create({
+        await db.wasteCollect.create({
             data: c,
         });
     };
@@ -160,7 +160,7 @@ const seed = async () => {
 
 
     // Test with promises
-    Promise.all(waste_reports.map((r) => prisma.wasteReport.create({ data: r })));
+    Promise.all(waste_reports.map((r) => db.wasteReport.create({ data: r })));
 
 
     // seed quest
@@ -174,7 +174,7 @@ const seed = async () => {
     ] satisfies Prisma.QuestCreateInput[]
 
     for (const c of quests) {
-        await prisma.quest.create({
+        await db.quest.create({
             data: c,
         });
     };
@@ -191,7 +191,7 @@ const seed = async () => {
     ] satisfies Prisma.QuizCreateInput[]
 
     for (const c of quizzes) {
-        await prisma.quiz.create({
+        await db.quiz.create({
             data: c,
         });
     };
@@ -204,13 +204,13 @@ const main = async () => {
         await seed();
 
         // if seed is succeded
-        await prisma.$disconnect();
+        await db.$disconnect();
         console.log("Exit from seeding");
         process.exit(0);
     }
     catch (e) {
         console.error(e)
-        await prisma.$disconnect()
+        await db.$disconnect()
         process.exit(1)
     }
 }
