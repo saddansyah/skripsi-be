@@ -1,5 +1,5 @@
 import db from '../db/instance';
-import { WasteContainerType } from '../types/WasteContainer';
+import { ContainerStatus, WasteContainerType } from '../types/WasteContainer';
 import { successResponse } from '../utils/responseBuilder';
 import { ErrorWithStatus } from '../utils/exceptionBuilder';
 import { Prisma } from '@prisma/client';
@@ -172,7 +172,6 @@ export const updateContainer = async (id: number, payload: any) => {
                 throw new ErrorWithStatus(e.message, 500);
         }
     }
-
 }
 
 export const deleteContainer = async (id: number) => {
@@ -190,6 +189,37 @@ export const deleteContainer = async (id: number) => {
                 data: []
             }
         )
+    }
+    catch (e: any) {
+        switch (e.constructor) {
+            case Prisma.PrismaClientKnownRequestError:
+                throw new ErrorWithStatus(e.message, 500);
+            default:
+                throw new ErrorWithStatus(e.message, 500);
+        }
+    }
+}
+
+export const updateContainerStatus = async (id: number, status: ContainerStatus) => {
+    try {
+        // Method -> find one based on id then update it
+        const existingContainer = ((await db.$queryRaw`SELECT * FROM waste_containers WHERE id=${id} LIMIT 1`) as WasteContainerType[])[0];
+
+        const container = await db.$queryRaw`
+            UPDATE waste_containers 
+            SET status=${Prisma.sql([`'${status}'`])}
+            WHERE id=${id}
+            RETURNING *;
+        ` as WasteContainerType[];
+
+        // Return JSON when success
+        return successResponse<WasteContainerType>(
+            {
+                message: `Container ${existingContainer.name} updated to ${status}`,
+                data: container
+            }
+        )
+
     }
     catch (e: any) {
         switch (e.constructor) {
