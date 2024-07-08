@@ -12,14 +12,14 @@ datasource db {
 }
 
 model User {
-  id           String         @id @default(cuid())
-  email        String         @unique @db.VarChar(200)
-  name         String         @db.VarChar(100)
-  is_admin     Boolean
-  img          String
-  point        Int            @default(0) @db.SmallInt
-  created_at   DateTime       @default(now())
-  updated_at   DateTime       @updatedAt
+  id            String         @id @default(cuid())
+  email         String         @unique @db.VarChar(200)
+  name          String         @db.VarChar(100)
+  is_admin      Boolean
+  img           String
+  point         Int            @default(0) @db.SmallInt
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @default(now())
   waste_collect WasteCollect[]
   waste_report  WasteReport[]
 
@@ -30,26 +30,26 @@ model WasteCluster {
   id         Int              @id @default(autoincrement())
   name       String           @db.VarChar(100)
   created_at DateTime         @default(now())
-  updated_at DateTime         @updatedAt
+  updated_at DateTime         @default(now())
   container  WasteContainer[]
 
   @@map("waste_clusters")
 }
 
 model WasteContainer {
-  id           Int             @id @default(autoincrement())
-  name         String          @db.VarChar(100)
-  type         ContainerType   @default(TONG)
-  rating       Float
-  max_kg       Float
-  max_vol      Float
-  lat          Float
-  long         Float
-  status       ContainerStatus @default(PENDING)
-  created_at   DateTime        @default(now())
-  updated_at   DateTime        @updatedAt
-  cluster      WasteCluster    @relation(fields: [cluster_id], references: [id])
-  cluster_id   Int
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(100)
+  type          ContainerType   @default(TONG)
+  rating        Float
+  max_kg        Float
+  max_vol       Float
+  lat           Float
+  long          Float
+  status        ContainerStatus @default(PENDING)
+  created_at    DateTime        @default(now())
+  updated_at    DateTime        @default(now())
+  cluster       WasteCluster    @relation(fields: [cluster_id], references: [id])
+  cluster_id    Int
   waste_collect WasteCollect[]
 
   @@map("waste_containers")
@@ -65,7 +65,7 @@ model WasteCollect {
   info         String?
   is_anonim    Boolean
   created_at   DateTime       @default(now())
-  updated_at   DateTime       @updatedAt
+  updated_at   DateTime       @default(now())
   user         User           @relation(fields: [user_id], references: [id])
   user_id      String
   container    WasteContainer @relation(fields: [container_id], references: [id])
@@ -86,7 +86,7 @@ model WasteReport {
   info       String?
   is_anonim  Boolean
   created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  updated_at DateTime  @default(now())
   user       User      @relation(fields: [user_id], references: [id])
   user_id    String
 
@@ -100,7 +100,7 @@ model Quest {
   point      Int
   type       QuestType
   created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  updated_at DateTime  @default(now())
 
   @@map("quests")
 }
@@ -113,7 +113,7 @@ model Quiz {
   point      Int
   img        String
   created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  updated_at DateTime @default(now())
 
   @@map("quizzes")
 }

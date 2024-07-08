@@ -1,12 +1,14 @@
 import { Elysia } from "elysia";
-import containerRoute from "./routes/container.route";
-import { errorResponse } from "./libs/responseBuilder";
-import { ErrorWithStatus } from "./libs/exceptionBuilder";
+import containerRoute from "./routes/containerRoute";
+import { errorResponse } from "./utils/responseBuilder";
+import { ErrorWithStatus } from "./utils/exceptionBuilder";
 
 const app = new Elysia()
   .error({ ErrorWithStatus }) // register custom error
   .onError(({ error, code }) => {
     switch (code) {
+      case 'VALIDATION':
+        return errorResponse({ status: 400, error: "Validation Error", message: error.message });
       case 'NOT_FOUND':
         return errorResponse({ status: 404, error: "Not Found", message: "Your requested url is not found" });
       case 'ErrorWithStatus':

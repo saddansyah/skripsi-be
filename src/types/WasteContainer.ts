@@ -1,17 +1,18 @@
 import { t, Static } from 'elysia';
 
-enum ContainerType {
+export enum ContainerType {
     DEPO = "DEPO",
-    TONG = "TONG"
+    TONG = "TONG",
+    OTHER = "OTHER"
 }
 
-enum ContainerStatus {
+export enum ContainerStatus {
     PENDING = "PENDING",
     ACCEPTED = "ACCEPTED",
     REJECTED = "REJECTED"
 }
 
-export const WasteContainerSchema = t.Object({
+const WasteContainerSchema = t.Object({
     id: t.Integer(),
     name: t.String({
         maxLength: 100
@@ -24,6 +25,20 @@ export const WasteContainerSchema = t.Object({
     long: t.Number(),
     cluster_id: t.Integer(),
     status: t.Enum(ContainerStatus)
+})
+
+export const WasteContainerPayloadType = t.Object({
+    name: t.String({
+        maxLength: 100,
+        error: 'Your name field is missing'
+    }),
+    type: t.Enum(ContainerType, { error: 'Your type field is missing' }),
+    rating: t.Number({ error: 'Your rating field is missing' }),
+    max_kg: t.Number({ error: 'Your kg field is missing' }),
+    max_vol: t.Number({ error: 'Your vol field is missing' }),
+    lat: t.Number({ error: 'Your latitude field is missing' }),
+    long: t.Number({ error: 'Your longitude field is missing' }),
+    cluster_id: t.Integer({ error: 'Your cluster field is missing' })
 })
 
 export type WasteContainerType = Static<typeof WasteContainerSchema>;

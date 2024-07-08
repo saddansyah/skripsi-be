@@ -58,6 +58,7 @@ const seed = async () => {
             max_vol: 20000,
             lat: -7.764655,
             long: 110.371049,
+            status: 'ACCEPTED',
             cluster: {
                 connect: { id: cluster_teknik.id }
             }
