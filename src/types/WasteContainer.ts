@@ -24,7 +24,9 @@ const WasteContainerSchema = t.Object({
     lat: t.Number(),
     long: t.Number(),
     cluster_id: t.Integer(),
-    status: t.Enum(ContainerStatus)
+    status: t.Enum(ContainerStatus),
+    created_at: t.Date(),
+    updated_at: t.Date()
 })
 
 export const WasteContainerPayloadType = t.Object({

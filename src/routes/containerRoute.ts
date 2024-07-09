@@ -35,14 +35,23 @@ const routes = new Elysia()
             )
             .get('/',
                 ({ query }) => getContainers({
-                    limit: 10,
-                    status: query?.status ?? '',
+                    limit: query?.limit,
+                    status: query?.status,
                     sortBy: query?.sortBy,
                     order: query?.order,
                     type: query?.type,
                     cluster_id: query?.clusterId
-
-                }))
+                }),
+                {
+                    query: t.Object({
+                        limit: t.Optional(t.Numeric()),
+                        status: t.Optional(t.String()),
+                        sortBy: t.Optional(t.String()),
+                        order: t.Optional(t.String()),
+                        type: t.Optional(t.String()),
+                        clusterId: t.Optional(t.Numeric()),
+                    })
+                })
             .get('/:id',
                 ({ params, query }) => getContainerById(params.id, { status: query?.status ?? '' }),
                 {
@@ -62,7 +71,8 @@ const routes = new Elysia()
                 {
                     params: t.Object({
                         id: t.Numeric({ error: 'Param id must be a number' })
-                    })
+                    }),
+                    body: t.Partial(WasteContainerPayloadType)
                 }
             )
             .delete('/:id',

@@ -7,11 +7,11 @@ import { Prisma } from '@prisma/client';
 export const getContainers = async (
     options?: {
         limit?: number,
-        status: string,
+        status?: string,
         sortBy?: string,
         order?: string
         type?: string,
-        cluster_id?: string
+        cluster_id?: number
     }) => {
     try {
         // Database querys
@@ -22,7 +22,7 @@ export const getContainers = async (
         ${Prisma.sql([options?.type ? 'type =' : 'name !='])} ${Prisma.sql([`'${options?.type?.toUpperCase()}'` ?? `''`])} AND
         ${Prisma.sql([options?.cluster_id ? 'cluster_id =' : 'name !='])} ${Prisma.sql([`'${options?.cluster_id}'` ?? `''`])})
         ORDER BY ${Prisma.sql([options?.sortBy ?? 'name'])} ${Prisma.sql([options?.order ?? 'asc'])} 
-        LIMIT ${options?.limit};
+        LIMIT ${options?.limit ?? 10};
         ` as WasteContainerType[];
 
         // Messages is empty when empty
@@ -58,7 +58,8 @@ export const getContainerById = async (id: number, options?: { status: string })
         // Database query
         const container = await db.$queryRaw`
         SELECT * FROM waste_containers
-        WHERE status${Prisma.sql([options?.status == 'all' ? "!='REJECTED'" : "='ACCEPTED'"])} AND id=${id};
+        WHERE status${Prisma.sql([options?.status == 'all' ? "!='REJECTED'" : "='ACCEPTED'"])} AND id=${id}
+        LIMIT 1;
         ` as WasteContainerType[];
 
         // Messages is empty when empty
@@ -90,7 +91,7 @@ export const getContainerById = async (id: number, options?: { status: string })
 }
 
 
-export const addContainer = async (payload: Omit<WasteContainerType, 'id' | 'status'>) => {
+export const addContainer = async (payload: Omit<WasteContainerType, 'id' | 'status' | 'created_at' | 'updated_at'>) => {
 
     try {
 
@@ -131,7 +132,7 @@ export const addContainer = async (payload: Omit<WasteContainerType, 'id' | 'sta
 }
 
 // Payload set to any to accomate dynamic property changes
-export const updateContainer = async (id: number, payload: any) => {
+export const updateContainer = async (id: number, payload: Partial<Omit<WasteContainerType, 'id' | 'status' | 'created_at' | 'updated_at'>>) => {
     // Override validation error
     if (Object.keys(payload).length == 0) {
         throw new ErrorWithStatus('Body must be not empty', 400, 'Validation Error');
