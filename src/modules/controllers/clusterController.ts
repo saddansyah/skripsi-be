@@ -1,8 +1,8 @@
-import db from "../db/instance";
+import db from "../../db/instance";
 import { Prisma } from "@prisma/client";
-import { ErrorWithStatus } from "../utils/exceptionBuilder";
-import { WasteClusterType } from "../types/WasteCluster";
-import { successResponse } from "../utils/responseBuilder";
+import { ErrorWithStatus } from "../../utils/exceptionBuilder";
+import { WasteClusterType } from "../../types/WasteCluster";
+import { successResponse } from "../../utils/responseBuilder";
 
 export const getClusters = async (
     options?: {

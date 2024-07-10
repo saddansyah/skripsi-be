@@ -3,27 +3,26 @@ import { Prisma } from '@prisma/client';
 
 const seed = async () => {
 
-    // seed cluster and users
-    const users = [
+    const profiles = [
         {
-            email: 'saddanakbar@gmail.com',
-            name: 'superadmin',
-            is_admin: true,
-            img: 'https://avatars.githubusercontent.com/u/73093118?v=4'
+            user: {
+                connect: { id: '0be65c73-dc31-4fcb-9fba-6a80e0c0b562' }
+            },
+            isAdmin: true
         },
         {
-            email: 'user1@gmail.com',
-            name: 'user1',
-            is_admin: false,
-            img: 'https://pbs.twimg.com/profile_images/1790279352825110528/H7GRQkKL_400x400.jpg',
+            user: {
+                connect: { id: 'f032cd98-a6f5-420d-824c-e9b3e9118e24' }
+            },
         },
-        {
-            email: 'user2@gmail.com',
-            name: 'user2',
-            is_admin: false,
-            img: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
-        },
-    ] satisfies Prisma.UserCreateInput[]
+
+    ] satisfies Prisma.ProfileCreateInput[];
+
+    for (const p of profiles) {
+        await db.profile.create({
+            data: p
+        })
+    };
 
     const waste_clusters = [
         {
@@ -34,19 +33,9 @@ const seed = async () => {
         }
     ] satisfies Prisma.WasteClusterCreateInput[]
 
-    const admin = await db.user.create({
-        data: users[0],
-    });
-    const user1 = await db.user.create({
-        data: users[1],
-    });
-    const user2 = await db.user.create({
-        data: users[2],
-    });
     const cluster_teknik = await db.wasteCluster.create({
         data: waste_clusters[0],
     });
-
 
     // seed container
     const waste_containers = [
@@ -97,7 +86,7 @@ const seed = async () => {
             info: 'Sampah Guna Ulang',
             is_anonim: false,
             user: {
-                connect: { id: user1.id }
+                connect: { id: '0be65c73-dc31-4fcb-9fba-6a80e0c0b562' }
             },
             container: {
                 connect: { id: cid[0] }
@@ -112,7 +101,7 @@ const seed = async () => {
             info: 'Sampah Daur Ulang',
             is_anonim: true,
             user: {
-                connect: { id: user2.id }
+                connect: { id: '0be65c73-dc31-4fcb-9fba-6a80e0c0b562' }
             },
             container: {
                 connect: { id: cid[0] }
@@ -139,7 +128,7 @@ const seed = async () => {
             info: 'Sampah Guna Ulang',
             is_anonim: false,
             user: {
-                connect: { id: user1.id }
+                connect: { id: 'f032cd98-a6f5-420d-824c-e9b3e9118e24' }
             },
         },
         {
@@ -153,7 +142,7 @@ const seed = async () => {
             info: 'Sampah Guna Ulang',
             is_anonim: false,
             user: {
-                connect: { id: user1.id }
+                connect: { id: 'f032cd98-a6f5-420d-824c-e9b3e9118e24' }
             },
         },
 
@@ -198,7 +187,6 @@ const seed = async () => {
     };
 
 }
-
 
 const main = async () => {
     try {

@@ -1,7 +1,7 @@
-import db from '../db/instance';
-import { ContainerStatus, WasteContainerType } from '../types/WasteContainer';
-import { successResponse } from '../utils/responseBuilder';
-import { ErrorWithStatus } from '../utils/exceptionBuilder';
+import db from '../../db/instance';
+import { ContainerStatus, WasteContainerType } from '../../types/WasteContainer';
+import { successResponse } from '../../utils/responseBuilder';
+import { ErrorWithStatus } from '../../utils/exceptionBuilder';
 import { Prisma } from '@prisma/client';
 
 export const getContainers = async (

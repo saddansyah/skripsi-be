@@ -9,10 +9,14 @@
     "db:migrate:create-only": "dotenv -e .env.development -- bunx prisma migrate dev --name $NAME --create-only",
     "db:migrate:deploy": "dotenv -e .env.development -- bunx prisma migrate deploy",
     "db:migrate:reset": "dotenv -e .env.development -- bunx prisma migrate reset",
+    "db:migrate:resolve": "dotenv -e .env.development -- bunx prisma migrate resolve --applied $APPLIED",
+    "db:pull": "dotenv -e .env.development -- bunx prisma db pull",
     "db:seed": "dotenv -e .env.development -- bunx prisma db seed"
   },
   "dependencies": {
+    "@elysiajs/cookie": "^0.8.0",
     "@prisma/client": "^5.16.1",
+    "@supabase/supabase-js": "^2.44.3",
     "dotenv-cli": "^7.4.2",
     "elysia": "latest",
     "prisma": "^5.16.1"

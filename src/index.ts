@@ -2,9 +2,9 @@ import { Elysia } from "elysia";
 import { errorResponse } from "./utils/responseBuilder";
 import { ErrorWithStatus } from "./utils/exceptionBuilder";
 
-// Routes
-import containerRoute from "./routes/containerRoute";
-import clusterRoute from "./routes/clusterRoute";
+// Modules
+import container from "./modules/container";
+import cluster from "./modules/cluster";
 
 const app = new Elysia()
   .error({ ErrorWithStatus }) // register custom error
@@ -19,12 +19,12 @@ const app = new Elysia()
       case 'ErrorWithStatus':
         return errorResponse({ status: error.status, error: error.name, message: error.message });
       default:
-        return errorResponse({ status: 500, error: "Internal Server Error", message: "Something bad happened on server" });
+        return errorResponse({ status: 500, error: "Internal Server Error", message: error.message });
     }
   })
-  .get("/", () => 'Hello World')
-  .use(containerRoute)
-  .use(clusterRoute)
+  .get("/", () => { return { hello: 'world!' } })
+  .use(container)
+  .use(cluster)
   .listen(process.env.APP_PORT ?? 8080);
 
 console.log(
