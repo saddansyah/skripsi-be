@@ -6,9 +6,9 @@
     "dev": "NODE_ENV=development dotenv -e .env.development -- bun run --watch src/index.ts",
     "prod": "NODE_ENV=production dotenv -e .env.production -- bun run --watch src/index.ts",
     "db:migrate": "dotenv -e .env.development -- bunx prisma migrate dev --name $NAME",
+    "db:migrate:apply": "dotenv -e .env.development -- bunx prisma migrate dev",
     "db:migrate:create-only": "dotenv -e .env.development -- bunx prisma migrate dev --name $NAME --create-only",
     "db:migrate:deploy": "dotenv -e .env.development -- bunx prisma migrate deploy",
-    "db:migrate:reset": "dotenv -e .env.development -- bunx prisma migrate reset",
     "db:migrate:resolve": "dotenv -e .env.development -- bunx prisma migrate resolve --applied $APPLIED",
     "db:pull": "dotenv -e .env.development -- bunx prisma db pull",
     "db:seed": "dotenv -e .env.development -- bunx prisma db seed"
