@@ -6,36 +6,19 @@ import {
     updateContainer,
     deleteContainer,
     updateContainerStatus,
-} from "./controllers/containerController";
-import { ContainerStatus, WasteContainerPayloadType } from "../types/WasteContainer";
-import { ErrorWithStatus } from "../utils/exceptionBuilder";
-import { authenticate } from "../libs/auth";
+} from "./handlers/containerHandler";
+import { WasteContainerPayloadModel } from "../models/WasteContainer";
+import { Status } from "../utils/constants/status";
+import { authenticate, authorize } from "../libs/auth";
 
 const routes = (app: Elysia) =>
     app
         .use(authenticate)
         .group('/container', (app) =>
             app
-                .guard(
-                    {
-                        beforeHandle({ userIsAdmin }) {
-                            if (!userIsAdmin) {
-                                throw new ErrorWithStatus("You're not signed in as admin", 403, 'Unauthorized')
-                            }
-                        }
-                    },
-                    (app) =>
-                        app
-                            .patch('/status/:id',
-                                ({ params, body }) => updateContainerStatus(params.id, body.status),
-                                {
-                                    body: t.Object({ status: t.Enum(ContainerStatus, { error: 'Status is not valid' }) }),
-                                    params: t.Object({ id: t.Numeric({ error: 'Param is must be number' }) })
-                                }
-                            )
-                )
                 .get('/',
                     ({ query }) => getContainers({
+                        page: query?.page,
                         limit: query?.limit,
                         status: query?.status,
                         sortBy: query?.sortBy,
@@ -45,6 +28,7 @@ const routes = (app: Elysia) =>
                     }),
                     {
                         query: t.Object({
+                            page: t.Optional(t.Numeric()),
                             limit: t.Optional(t.Numeric()),
                             status: t.Optional(t.String()),
                             sortBy: t.Optional(t.String()),
@@ -64,7 +48,7 @@ const routes = (app: Elysia) =>
                 .post('/',
                     ({ body }) => addContainer(body),
                     {
-                        body: WasteContainerPayloadType
+                        body: WasteContainerPayloadModel
                     }
                 )
                 .patch('/:id',
@@ -73,7 +57,7 @@ const routes = (app: Elysia) =>
                         params: t.Object({
                             id: t.Numeric({ error: 'Param id must be a number' })
                         }),
-                        body: t.Partial(WasteContainerPayloadType)
+                        body: t.Partial(WasteContainerPayloadModel)
                     }
                 )
                 .delete('/:id',
@@ -83,6 +67,22 @@ const routes = (app: Elysia) =>
                             id: t.Numeric({ error: 'Param id must be a number' })
                         })
                     })
+                .guard(
+                    {
+                        beforeHandle({ userId }) {
+                            return authorize(userId);
+                        },
+                    },
+                    (app) =>
+                        app
+                            .patch('/status/:id',
+                                ({ params, body }) => updateContainerStatus(params.id, body.status),
+                                {
+                                    body: t.Object({ status: t.Enum(Status, { error: 'Status is not valid' }) }),
+                                    params: t.Object({ id: t.Numeric({ error: 'Param is must be number' }) })
+                                }
+                            )
+                )
         )
 
 

@@ -1,14 +1,12 @@
 import Elysia, { t } from "elysia";
-import { addCluster, deleteCluster, getClusters, updateCluster } from "./handlers/clusterHandler";
-import { getContainerById } from "./handlers/containerHandler";
-import { WasteClusterPayloadType } from "../models/WasteCluster";
 import { authenticate, authorize } from "../libs/auth";
+import { deleteUser, getUserById, getUsers } from "./handlers/userHandler";
 
 const routes = (app: Elysia) =>
     app
-        .group('/cluster', (app) =>
+        .use(authenticate)
+        .group('/user', (app) =>
             app
-                .use(authenticate)
                 .guard(
                     {
                         beforeHandle({ userId }) {
@@ -18,53 +16,40 @@ const routes = (app: Elysia) =>
                     (app) =>
                         app
                             .get('/',
-                                ({ query }) => getClusters({
+                                ({ query }) => getUsers({
                                     page: query?.page,
                                     limit: query?.limit,
                                     sortBy: query?.sortBy,
                                     order: query?.order,
+                                    type: query?.type,
                                 }),
                                 {
                                     query: t.Object({
                                         page: t.Optional(t.Numeric()),
                                         limit: t.Optional(t.Numeric()),
                                         sortBy: t.Optional(t.String()),
-                                        order: t.Optional(t.String())
+                                        order: t.Optional(t.String()),
+                                        type: t.Optional(t.String())
                                     })
                                 }
                             )
                             .get('/:id',
-                                ({ params }) => getContainerById(params.id),
+                                ({ params }) => getUserById(params.id),
                                 {
                                     params: t.Object({
-                                        id: t.Numeric({ error: 'Param id must be a number' })
+                                        id: t.String({ format: "uuid", error: 'Param id must be in UUID format' })
                                     })
                                 }
                             )
-                            .post('/',
-                                ({ body }) => addCluster(body),
-                                {
-                                    body: WasteClusterPayloadType
-                                }
-                            )
-                            .patch('/:id',
-                                ({ params, body }) => updateCluster(params.id, body),
-                                {
-                                    params: t.Object({
-                                        id: t.Numeric({ error: 'Param id must be a number' })
-                                    }),
-                                    body: t.Partial(WasteClusterPayloadType)
-                                }
-                            )
                             .delete('/:id',
-                                ({ params }) => deleteCluster(params.id),
+                                ({ params, userId }) => deleteUser(params.id, userId),
                                 {
                                     params: t.Object({
-                                        id: t.Numeric({ error: 'Param id must be a number' })
+                                        id: t.String({ format: "uuid", error: 'Param id must be in UUID format' })
                                     })
                                 }
                             )
                 )
-        );
+        )
 
 export default routes;

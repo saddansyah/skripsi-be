@@ -9,7 +9,7 @@ NAME=init bun run db-migrate
 ## How to Safely Resetting Database
 First of all, dont use `bunx prisma migrate reset` to reset database, since it would bring catasthrope out of your supabase db. Instead, you can follow these steps below.
 
-1. Delete the entire tables and enum in `public` schema via Supabase GUI
+1. Delete the entire tables and enums in `public` schema via Supabase GUI
 ```sql
 -- Delete Tables in Public Schema
 
@@ -39,6 +39,6 @@ end $$;
 ```
 2. Baseline the existing migration history `(0_init_prisma_db_pull)` using `APPLIED=0_init_prisma_db_pull bun run db:migrate:resolve` (to prevent existing schemas which we strongly related on like `auth.users` to be broken)
 
-3. Apply the rest of migrations (except the applied one) using `bun run db:migrate`
+3. Apply the rest of migrations (except the applied one) using `bun run db:migrate:apply`
 
 4. Execute the seeder using `bun run db:seed`

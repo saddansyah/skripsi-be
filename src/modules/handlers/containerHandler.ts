@@ -1,11 +1,13 @@
 import db from '../../db/instance';
-import { ContainerStatus, WasteContainerType } from '../../types/WasteContainer';
+import { WasteContainerType } from '../../models/WasteContainer';
+import { Status } from '../../utils/constants/status';
 import { successResponse } from '../../utils/responseBuilder';
 import { ErrorWithStatus } from '../../utils/exceptionBuilder';
 import { Prisma } from '@prisma/client';
 
 export const getContainers = async (
     options?: {
+        page?: number,
         limit?: number,
         status?: string,
         sortBy?: string,
@@ -14,16 +16,19 @@ export const getContainers = async (
         cluster_id?: number
     }) => {
     try {
+        const limit = options?.limit ?? 10;
+        const offset = ((options?.page ?? 1) - 1) * (limit);
+
         // Database querys
-        const containers = await db.$queryRaw`
-        SELECT * FROM waste_containers 
-        WHERE 
-        status${Prisma.sql([options?.status == 'all' ? "!='REJECTED'" : "='ACCEPTED'"])} AND (
-        ${Prisma.sql([options?.type ? 'type =' : 'name !='])} ${Prisma.sql([`'${options?.type?.toUpperCase()}'` ?? `''`])} AND
-        ${Prisma.sql([options?.cluster_id ? 'cluster_id =' : 'name !='])} ${Prisma.sql([`'${options?.cluster_id}'` ?? `''`])})
-        ORDER BY ${Prisma.sql([options?.sortBy ?? 'name'])} ${Prisma.sql([options?.order ?? 'asc'])} 
-        LIMIT ${options?.limit ?? 10};
-        ` as WasteContainerType[];
+        const containers = await db.$queryRaw<WasteContainerType[]>`
+            SELECT cn.id, cn.name, cn.type, cn.rating, cn.status, cl.name as cluster FROM waste_containers as cn
+            INNER JOIN waste_clusters as cl ON cn.cluster_id = cl.id
+                ${options?.status ? Prisma.sql` WHERE "status"::text=${options?.status.toUpperCase()} ` : Prisma.empty}
+                ${options?.type ? Prisma.sql` AND "type"::text=${options?.type.toUpperCase()} ` : Prisma.empty} 
+                ${options?.cluster_id ? Prisma.sql` AND "cluster_id"::int4=${options?.cluster_id} ` : Prisma.empty} 
+            ORDER BY ${Prisma.sql([options?.sortBy ? `cn.${options?.sortBy}` : `cn.name`])} ${Prisma.sql([options?.order ?? 'asc'])} 
+            LIMIT ${limit} OFFSET ${offset};
+        `;
 
         // Messages is empty when empty
         if (containers.length == 0) {
@@ -48,7 +53,7 @@ export const getContainers = async (
             case Prisma.PrismaClientKnownRequestError:
                 throw new ErrorWithStatus(e.message, 500);
             default:
-                throw new ErrorWithStatus(e.message, 500);
+                throw new ErrorWithStatus(e.message, e.status, e.name);
         }
     }
 }
@@ -56,14 +61,16 @@ export const getContainers = async (
 export const getContainerById = async (id: number, options?: { status: string }) => {
     try {
         // Database query
-        const container = await db.$queryRaw`
+        const container = await db.$queryRaw<WasteContainerType[]>`
         SELECT * FROM waste_containers
-        WHERE status${Prisma.sql([options?.status == 'all' ? "!='REJECTED'" : "='ACCEPTED'"])} AND id=${id}
+        WHERE 
+            id=${id}
+            ${options?.status ? Prisma.sql` AND "status"::text=${options?.status.toUpperCase()} ` : Prisma.empty}
         LIMIT 1;
-        ` as WasteContainerType[];
+        `;
 
         // Messages is empty when empty
-        if (!container) {
+        if (container.length == 0) {
             return successResponse<WasteContainerType>(
                 {
                     message: "Container is empty",
@@ -85,7 +92,7 @@ export const getContainerById = async (id: number, options?: { status: string })
             case Prisma.PrismaClientKnownRequestError:
                 throw new ErrorWithStatus(e.message, 500);
             default:
-                throw new ErrorWithStatus(e.message, 500);
+                throw new ErrorWithStatus(e.message, e.status, e.name);
         }
     }
 }
@@ -94,24 +101,25 @@ export const getContainerById = async (id: number, options?: { status: string })
 export const addContainer = async (payload: Omit<WasteContainerType, 'id' | 'status' | 'created_at' | 'updated_at'>) => {
 
     try {
-
         // Exclude status -> status can be only altered via update, default value is PENDING
-        const container = await db.$queryRaw`
+        const container = await db.$queryRaw<WasteContainerType[]>`
             INSERT INTO waste_containers 
-            VALUES(DEFAULT, 
-            ${payload.name}, 
-            ${payload.rating}, 
-            ${payload.max_kg}, 
-            ${payload.max_vol}, 
-            ${payload.lat}, 
-            ${payload.long}, 
-            now(), 
-            now(), 
-            ${payload.cluster_id}, 
-            ${Prisma.sql([`'${payload.type}'`])})
+            VALUES(
+                DEFAULT, 
+                ${payload.name}, 
+                ${payload.type}::"ContainerType",
+                ${payload.rating}, 
+                ${payload.max_kg}, 
+                ${payload.max_vol}, 
+                ${payload.lat}, 
+                ${payload.long},
+                DEFAULT,
+                now(), 
+                now(), 
+                ${payload.cluster_id}
+            )
             RETURNING *;
-
-        ` as WasteContainerType[];
+        `
 
         // Return JSON when success
         return successResponse<WasteContainerType>(
@@ -126,7 +134,7 @@ export const addContainer = async (payload: Omit<WasteContainerType, 'id' | 'sta
             case Prisma.PrismaClientKnownRequestError:
                 throw new ErrorWithStatus(e.message, 500);
             default:
-                throw new ErrorWithStatus(e.message, 500);
+                throw new ErrorWithStatus(e.message, e.status, e.name);
         }
     }
 }
@@ -140,21 +148,23 @@ export const updateContainer = async (id: number, payload: Partial<Omit<WasteCon
 
     try {
         // Method -> find one based on id then update it
-        const existingContainer = ((await db.$queryRaw`SELECT * FROM waste_containers WHERE id=${id} LIMIT 1`) as WasteContainerType[])[0];
+        const existingContainer = (await db.$queryRaw<WasteContainerType[]>`SELECT * FROM waste_containers WHERE id=${id} LIMIT 1`)[0];
 
-        const container = await db.$queryRaw`
+        const container = await db.$queryRaw<WasteContainerType[]>`
             UPDATE waste_containers 
-            SET name=${payload.name ?? existingContainer.name}, 
-            rating=${payload.rating ?? existingContainer.rating}, 
-            max_kg=${payload.max_kg ?? existingContainer.max_kg}, 
-            max_vol=${payload.max_vol ?? existingContainer.max_vol}, 
-            lat=${payload.lat ?? existingContainer.lat}, 
-            long=${payload.long ?? existingContainer.long},
-            cluster_id=${payload.cluster_id ?? existingContainer.cluster_id}, 
-            type=${Prisma.sql([`'${payload.type ?? existingContainer.type}'`])}
+            SET 
+                name=${payload.name ?? existingContainer.name}, 
+                rating=${payload.rating ?? existingContainer.rating}, 
+                max_kg=${payload.max_kg ?? existingContainer.max_kg}, 
+                max_vol=${payload.max_vol ?? existingContainer.max_vol}, 
+                lat=${payload.lat ?? existingContainer.lat}, 
+                long=${payload.long ?? existingContainer.long},
+                updated_at=now(),
+                cluster_id=${payload.cluster_id ?? existingContainer.cluster_id}, 
+                type=${payload.type ?? existingContainer.type}::"ContainerType"
             WHERE id=${id}
             RETURNING *;
-        ` as WasteContainerType[];
+        `;
 
         // Return JSON when success
         return successResponse<WasteContainerType>(
@@ -170,7 +180,7 @@ export const updateContainer = async (id: number, payload: Partial<Omit<WasteCon
             case Prisma.PrismaClientKnownRequestError:
                 throw new ErrorWithStatus(e.message, 500);
             default:
-                throw new ErrorWithStatus(e.message, 500);
+                throw new ErrorWithStatus(e.message, e.status, e.name);
         }
     }
 }
@@ -178,7 +188,7 @@ export const updateContainer = async (id: number, payload: Partial<Omit<WasteCon
 export const deleteContainer = async (id: number) => {
     try {
 
-        await db.$queryRaw`
+        await db.$queryRaw<WasteContainerType[]>`
             DELETE FROM waste_containers
             WHERE id=${id};
         `;
@@ -196,22 +206,24 @@ export const deleteContainer = async (id: number) => {
             case Prisma.PrismaClientKnownRequestError:
                 throw new ErrorWithStatus(e.message, 500);
             default:
-                throw new ErrorWithStatus(e.message, 500);
+                throw new ErrorWithStatus(e.message, e.status, e.name);
         }
     }
 }
 
-export const updateContainerStatus = async (id: number, status: ContainerStatus) => {
+export const updateContainerStatus = async (id: number, status: Status) => {
     try {
         // Method -> find one based on id then update it
-        const existingContainer = ((await db.$queryRaw`SELECT * FROM waste_containers WHERE id=${id} LIMIT 1`) as WasteContainerType[])[0];
+        const existingContainer = ((await db.$queryRaw<WasteContainerType[]>`SELECT * FROM waste_containers WHERE id=${id} LIMIT 1`))[0];
 
-        const container = await db.$queryRaw`
+        const container = await db.$queryRaw<WasteContainerType[]>`
             UPDATE waste_containers 
-            SET status=${Prisma.sql([`'${status}'`])}
+            SET 
+                status=${status}::"Status", 
+                updated_at=now() 
             WHERE id=${id}
             RETURNING *;
-        ` as WasteContainerType[];
+        `;
 
         // Return JSON when success
         return successResponse<WasteContainerType>(
@@ -227,7 +239,7 @@ export const updateContainerStatus = async (id: number, status: ContainerStatus)
             case Prisma.PrismaClientKnownRequestError:
                 throw new ErrorWithStatus(e.message, 500);
             default:
-                throw new ErrorWithStatus(e.message, 500);
+                throw new ErrorWithStatus(e.message, e.status, e.name);
         }
     }
 }
