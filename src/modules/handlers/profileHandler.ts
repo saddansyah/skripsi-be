@@ -55,7 +55,7 @@ export const getLeaderboard = async (options?: { limit?: number }) => {
         const leaderboard = await db.$queryRaw<Partial<Static<typeof ProfileSchema>>[]>`
             SELECT u.id, u.raw_user_meta_data, SUM(f.point)::int4 AS total_points
                 FROM auth.users AS u 
-                LEFT JOIN (
+                INNER JOIN (
                     SELECT user_id, point FROM waste_collects
                     UNION ALL
                     SELECT user_id, point FROM waste_reports
