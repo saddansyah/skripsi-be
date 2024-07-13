@@ -6,9 +6,9 @@ import { authenticate, authorize } from "../libs/auth";
 
 const routes = (app: Elysia) =>
     app
+        .use(authenticate)
         .group('/cluster', (app) =>
             app
-                .use(authenticate)
                 .guard(
                     {
                         beforeHandle({ userId }) {

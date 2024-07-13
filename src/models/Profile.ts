@@ -1,7 +1,7 @@
 import { t, Static } from 'elysia';
 
 export const ProfileSchema = t.Object({
-    id: t.String(),
+    user_id: t.String(),
     user_data: t.Object({
         iss: t.String(),
         sub: t.String(),

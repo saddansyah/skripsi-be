@@ -1,9 +1,11 @@
 import db from '../../db/instance';
-import { WasteContainerType } from '../../models/WasteContainer';
+import { WasteContainerPayloadModel, WasteContainerType } from '../../models/WasteContainer';
 import { Status } from '../../utils/constants/status';
 import { successResponse } from '../../utils/responseBuilder';
 import { ErrorWithStatus } from '../../utils/exceptionBuilder';
 import { Prisma } from '@prisma/client';
+import { Static } from 'elysia';
+import { CONTAINER_POINT } from '../../utils/constants/point';
 
 export const getContainers = async (
     options?: {
@@ -98,33 +100,45 @@ export const getContainerById = async (id: number, options?: { status: string })
 }
 
 
-export const addContainer = async (payload: Omit<WasteContainerType, 'id' | 'status' | 'created_at' | 'updated_at'>) => {
+export const addContainer = async (userId: string, payload: Static<typeof WasteContainerPayloadModel>) => {
 
     try {
         // Exclude status -> status can be only altered via update, default value is PENDING
-        const container = await db.$queryRaw<WasteContainerType[]>`
-            INSERT INTO waste_containers 
-            VALUES(
-                DEFAULT, 
-                ${payload.name}, 
-                ${payload.type}::"ContainerType",
-                ${payload.rating}, 
-                ${payload.max_kg}, 
-                ${payload.max_vol}, 
-                ${payload.lat}, 
-                ${payload.long},
-                DEFAULT,
-                now(), 
-                now(), 
-                ${payload.cluster_id}
-            )
-            RETURNING *;
-        `
+        const [container, _] = await db.$transaction([
+            db.$queryRaw<WasteContainerType[]>`
+                INSERT INTO waste_containers 
+                VALUES(
+                    DEFAULT, 
+                    ${payload.name}, 
+                    ${payload.type}::"ContainerType",
+                    ${payload.rating}, 
+                    ${payload.max_kg}, 
+                    ${payload.max_vol}, 
+                    ${payload.lat}, 
+                    ${payload.long},
+                    DEFAULT,
+                    ${CONTAINER_POINT},
+                    now(), 
+                    now(), 
+                    ${payload.cluster_id},
+                    ${userId}::uuid
+                )
+                RETURNING *;
+            `
+            ,
+            db.$queryRaw`
+                UPDATE profiles 
+                SET additional_point=additional_point+${CONTAINER_POINT} 
+                WHERE user_id=${userId}::uuid;
+            `
+        ])
+
+        // TODO(Event) -> send to point notification to user
 
         // Return JSON when success
         return successResponse<WasteContainerType>(
             {
-                message: `Container ${payload.name} successfully created`,
+                message: `Container ${payload.name} successfully created. You got ${CONTAINER_POINT} point`,
                 data: container
             }
         )
@@ -140,7 +154,7 @@ export const addContainer = async (payload: Omit<WasteContainerType, 'id' | 'sta
 }
 
 // Payload set to any to accomate dynamic property changes
-export const updateContainer = async (id: number, payload: Partial<Omit<WasteContainerType, 'id' | 'status' | 'created_at' | 'updated_at'>>) => {
+export const updateContainer = async (id: number, payload: Partial<Static<typeof WasteContainerPayloadModel>>) => {
     // Override validation error
     if (Object.keys(payload).length == 0) {
         throw new ErrorWithStatus('Body must be not empty', 400, 'Validation Error');
@@ -211,10 +225,9 @@ export const deleteContainer = async (id: number) => {
     }
 }
 
-export const updateContainerStatus = async (id: number, status: Status) => {
+export const updateContainerStatus = async (userId: string, id: number, status: Status) => {
     try {
         // Method -> find one based on id then update it
-        const existingContainer = ((await db.$queryRaw<WasteContainerType[]>`SELECT * FROM waste_containers WHERE id=${id} LIMIT 1`))[0];
 
         const container = await db.$queryRaw<WasteContainerType[]>`
             UPDATE waste_containers 
@@ -225,10 +238,20 @@ export const updateContainerStatus = async (id: number, status: Status) => {
             RETURNING *;
         `;
 
+        // TODO(Event) -> send to point notification to user
+
+        if (container[0].status === `ACCEPTED`) {
+            await db.$queryRaw`
+                UPDATE profiles 
+                SET additional_point=additional_point+${container[0].point}
+                WHERE user_id=${userId}::uuid;
+            `
+        }
+
         // Return JSON when success
         return successResponse<WasteContainerType>(
             {
-                message: `Container ${existingContainer.name} updated to ${status}`,
+                message: `Container with id ${id} updated to ${status}`,
                 data: container
             }
         )

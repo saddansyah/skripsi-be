@@ -31,9 +31,11 @@ CREATE TABLE "public"."waste_containers" (
     "lat" DOUBLE PRECISION NOT NULL,
     "long" DOUBLE PRECISION NOT NULL,
     "status" "public"."Status" NOT NULL DEFAULT 'PENDING',
+    "point" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "cluster_id" INTEGER NOT NULL,
+    "user_id" UUID NOT NULL,
 
     CONSTRAINT "waste_containers_pkey" PRIMARY KEY ("id")
 );
@@ -128,6 +130,7 @@ CREATE TABLE "public"."quiz_log" (
 CREATE TABLE "public"."profiles" (
     "user_id" UUID NOT NULL,
     "is_admin" BOOLEAN NOT NULL DEFAULT false,
+    "additional_point" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -183,6 +186,9 @@ CREATE TABLE "public"."learn" (
 
 -- AddForeignKey
 ALTER TABLE "public"."waste_containers" ADD CONSTRAINT "waste_containers_cluster_id_fkey" FOREIGN KEY ("cluster_id") REFERENCES "public"."waste_clusters"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."waste_containers" ADD CONSTRAINT "waste_containers_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."waste_collects" ADD CONSTRAINT "waste_collects_container_id_fkey" FOREIGN KEY ("container_id") REFERENCES "public"."waste_containers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

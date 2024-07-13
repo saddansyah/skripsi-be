@@ -46,7 +46,7 @@ const routes = (app: Elysia) =>
                     }
                 )
                 .post('/',
-                    ({ body }) => addContainer(body),
+                    ({ body, userId }) => addContainer(userId, body),
                     {
                         body: WasteContainerPayloadModel
                     }
@@ -76,7 +76,7 @@ const routes = (app: Elysia) =>
                     (app) =>
                         app
                             .patch('/status/:id',
-                                ({ params, body }) => updateContainerStatus(params.id, body.status),
+                                ({ params, body, userId }) => updateContainerStatus(userId, params.id, body.status),
                                 {
                                     body: t.Object({ status: t.Enum(Status, { error: 'Status is not valid' }) }),
                                     params: t.Object({ id: t.Numeric({ error: 'Param is must be number' }) })

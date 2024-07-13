@@ -129,6 +129,8 @@ export const addMyWasteCollect = async (userId: string, point: number, payload: 
             RETURNING *;
         `;
 
+        // TODO(Event) -> send point notification to user
+
         return successResponse<WasteCollectType>(
             {
                 message: `New collect successfully created`,
@@ -326,6 +328,8 @@ export const updateWasteCollectStatus = async (id: number, payload: { status: St
         WHERE id=${id} 
         RETURNING *;
         `;
+
+        // TODO(Event) -> send point notification to user
 
         return successResponse<WasteCollectType>(
             {

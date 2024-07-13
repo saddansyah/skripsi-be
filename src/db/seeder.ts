@@ -1,5 +1,6 @@
 import db from '../db/instance'
 import { Prisma } from '@prisma/client';
+import { CONTAINER_POINT } from '../utils/constants/point';
 
 const seed = async () => {
 
@@ -51,8 +52,12 @@ const seed = async () => {
             lat: -7.764655,
             long: 110.371049,
             status: 'ACCEPTED',
+            point: CONTAINER_POINT,
             cluster: {
                 connect: { id: cluster_teknik.id }
+            },
+            user: {
+                connect: { id: user1 }
             }
         },
         {
@@ -63,8 +68,12 @@ const seed = async () => {
             max_vol: 20000,
             lat: -7.764655,
             long: 110.371049,
+            point: CONTAINER_POINT,
             cluster: {
                 connect: { id: cluster_teknik.id }
+            },
+            user: {
+                connect: { id: user1 }
             }
         },
     ] satisfies Prisma.WasteContainerCreateInput[]
