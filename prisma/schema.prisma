@@ -470,7 +470,7 @@ model QuestLog {
   quest      Quest    @relation(fields: [quest_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   quest_id   Int
 
-  @@map("quests_log")
+  @@map("quests_logs")
   @@schema("public")
 }
 
@@ -497,7 +497,7 @@ model QuizLog {
   quiz       Quiz     @relation(fields: [quiz_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   quiz_id    Int
 
-  @@map("quiz_log")
+  @@map("quiz_logs")
   @@schema("public")
 }
 
@@ -522,7 +522,7 @@ model Achievement {
   updated_at           DateTime              @default(now())
   assigned_achievement AssignedAchievement[]
 
-  @@map("achievement")
+  @@map("achievements")
   @@schema("public")
 }
 
@@ -534,7 +534,7 @@ model AssignedAchievement {
   achievement_id Int
 
   @@id(name: "ach_user_id", [achievement_id, user_id])
-  @@map("assigned_achievement")
+  @@map("assigned_achievements")
   @@schema("public")
 }
 
@@ -550,7 +550,7 @@ model EvidenceRating {
   container_id Int
 
   @@id(name: "con_user_id", [container_id, user_id])
-  @@map("evidence_rating")
+  @@map("evidence_ratings")
   @@schema("public")
 }
 

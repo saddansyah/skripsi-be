@@ -1,9 +1,11 @@
-import { Prisma } from "@prisma/client";
-import { ErrorWithStatus } from "../../utils/exceptionBuilder";
-import db from "../../db/instance";
-import { successResponse } from "../../utils/responseBuilder";
-import { AssignedAchievementType, ProfileSchema, ProfileType } from "../../models/Profile";
 import { Static, t } from "elysia";
+import { Prisma } from "@prisma/client";
+
+import db from "../../db/instance";
+import { AssignedAchievementType } from "../../models/Achievement";
+import { ProfileSchema, ProfileType } from "../../models/Profile";
+import { ErrorWithStatus } from "../../utils/exceptionBuilder";
+import { successResponse } from "../../utils/responseBuilder";
 
 export const getMyProfile = async (userId: string) => {
     try {

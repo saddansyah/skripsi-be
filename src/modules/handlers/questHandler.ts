@@ -1,28 +1,26 @@
-import { Prisma, Quiz } from "@prisma/client";
-import { QuizLogPayload, QuizLogType, QuizType } from "../../models/Quiz";
+import { Prisma } from "@prisma/client";
 import { successResponse } from "../../utils/responseBuilder";
 import { ErrorWithStatus } from "../../utils/exceptionBuilder";
 import db from "../../db/instance";
-import { QUIZ_POINT } from "../../utils/constants/point";
+import { QUEST_POINT } from "../../utils/constants/point";
 import { Static } from "elysia";
+import { QuestLogPayload, QuestLogType, QuestType } from "../../models/Quest";
 import { hash, verify } from "../../utils/hash";
 
-type UserQuizType = Omit<QuizType, 'created_at' | 'updated_at' | 'answer'>
-
-export const getRandomQuiz = async (userId: string) => {
+export const getRandomQuest = async (userId: string) => {
     try {
-        const quiz = await db.$queryRaw<UserQuizType[]>`
-            SELECT id, question, options, img FROM quizzes
+        const quest = await db.$queryRaw<QuestType[]>`
+            SELECT id, title, "desc", img, type FROM quests
             ORDER BY random()
             LIMIT 1;
         `
         // Put unique id for later post request 
-        const uniqueId = await hash(`${quiz[0].id};${userId}`);
+        const uniqueId = await hash(`${quest[0].id};${userId}`);
 
-        return successResponse<UserQuizType & { unique_id: string }>(
+        return successResponse<QuestType & { unique_id: string }>(
             {
-                message: "Your quiz is ready",
-                data: [{ ...quiz[0], unique_id: uniqueId }]
+                message: "Your quests is ready",
+                data: [{ ...quest[0], unique_id: uniqueId }]
             }
         )
     }
@@ -36,27 +34,27 @@ export const getRandomQuiz = async (userId: string) => {
     }
 }
 
-export const getQuizById = async (id: number) => {
+export const getQuestById = async (id: number) => {
     try {
-        const quiz = await db.$queryRaw<UserQuizType[]>`
-            SELECT id, question, options, img FROM quizzes
+        const quest = await db.$queryRaw<QuestType[]>`
+            SELECT id, title, desc, img, type FROM quests
             WHERE id=${id}
             LIMIT 1;
         `
 
-        if (quiz.length == 0) {
-            return successResponse<UserQuizType>(
+        if (quest.length == 0) {
+            return successResponse<QuestType>(
                 {
-                    message: `Quiz with id ${id} is empty`,
-                    data: quiz
+                    message: `Quest with id ${id} is empty`,
+                    data: quest
                 }
             )
         }
 
-        return successResponse<UserQuizType>(
+        return successResponse<QuestType>(
             {
-                message: "Your quiz is ready",
-                data: quiz
+                message: "Your quest is ready",
+                data: quest
             }
         )
     }
@@ -70,39 +68,30 @@ export const getQuizById = async (id: number) => {
     }
 }
 
-// Quiz Log
+// Quest Log
 
-export const checkAnswerAndAddQuizLog = async (userId: string, payload: Static<typeof QuizLogPayload>) => {
+export const accomplishQuest = async (userId: string, payload: Static<typeof QuestLogPayload>) => {
     try {
 
-        const isMatch = await verify(`${payload.quiz_id};${userId}`, payload.unique_id);
+        const isMatch = await verify(`${payload.quest_id};${userId}`, payload.unique_id);
 
         if (!isMatch)
             throw new ErrorWithStatus('Your unique ID is not valid', 400, 'Bad Request')
 
-        const validAnswer = await db.$queryRaw<QuizType[]>`
-            SELECT answer FROM quizzes 
-            WHERE id=${payload.quiz_id} 
-            LIMIT 1
-        `
-        if (validAnswer[0].answer !== payload.answer)
-            throw new ErrorWithStatus('Your answer is incorrect. Try Again.', 400, 'Bad Request')
-
-
-        const quizLog = await db.$queryRaw<QuizLogType[]>`
-            INSERT INTO quiz_logs
+        const quizLog = await db.$queryRaw<QuestLogType[]>`
+            INSERT INTO quest_logs
             VALUES (
                 DEFAULT,
-                ${QUIZ_POINT},
+                ${QUEST_POINT},
                 now(),
                 ${userId}::uuid,
-                ${payload.quiz_id}
+                ${payload.quest_id}
             )
             RETURNING point;
         `
         // TODO(Event) -> send point notification to user
 
-        return successResponse<QuizLogType>(
+        return successResponse<QuestLogType>(
             {
                 message: `You got ${quizLog[0].point!} point. Your progress will be recorded in our system`,
                 data: quizLog

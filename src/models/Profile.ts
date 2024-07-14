@@ -21,12 +21,3 @@ export const ProfileSchema = t.Object({
 
 export type ProfileType = Static<typeof ProfileSchema>;
 
-export const AssignedAchievementSchema = t.Object({
-    id: t.Integer(),
-    name: t.String(),
-    description: t.String(),
-    img: t.String()
-})
-
-export type AssignedAchievementType = Static<typeof AssignedAchievementSchema>;
-

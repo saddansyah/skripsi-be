@@ -15,7 +15,9 @@ export type QuizType = Static<typeof QuizSchema>;
 export const QuizLogSchema = t.Object({
     id: t.Integer(),
     point: t.Integer(),
-    created_at: t.Date()
+    created_at: t.Date(),
+    user_id: t.String({ format: 'uuid' }),
+    quest_id: t.Integer()
 })
 
 export type QuizLogType = Static<typeof QuizLogSchema>;

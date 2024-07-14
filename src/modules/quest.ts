@@ -1,20 +1,22 @@
 import Elysia, { t } from "elysia";
 import { authenticate, authorize } from "../libs/auth";
-import { checkAnswerAndAddQuizLog, getQuizById, getRandomQuiz } from "./handlers/quizHandler";
-import { QuizLogPayload } from "../models/Quiz";
+import { QuestLogPayload } from "../models/Quest";
+import { accomplishQuest, getQuestById, getRandomQuest } from "./handlers/questHandler";
 
 const routes = (app: Elysia) =>
     app
         .use(authenticate)
-        .group('/quiz', (app) =>
+        .group('/quest', (app) =>
             app
-                .get('/', ({ userId }) => getRandomQuiz(userId))
+                .get('/',
+                    ({ userId }) => getRandomQuest(userId)
+                )
                 .group('/log', (app) =>
                     app
                         .post('/',
-                            ({ body, userId }) => checkAnswerAndAddQuizLog(userId, body),
+                            ({ body, userId }) => accomplishQuest(userId, body),
                             {
-                                body: QuizLogPayload
+                                body: QuestLogPayload
                             }
                         )
                 )
@@ -28,7 +30,7 @@ const routes = (app: Elysia) =>
                             },
                             (app) =>
                                 app
-                                    .get('/:id', ({ params }) => getQuizById(params.id),
+                                    .get('/:id', ({ params }) => getQuestById(params.id),
                                         {
                                             params: t.Object({
                                                 id: t.Numeric({ error: 'Param id must be a number' })

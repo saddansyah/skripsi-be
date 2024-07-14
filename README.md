@@ -39,11 +39,12 @@ First of all, dont use `bunx prisma migrate reset` to reset database, since it w
     ```
 2. Baseline the existing migration history `(0_init_prisma_db_pull)` using `APPLIED=0_init_prisma_db_pull bun run db:migrate:resolve` (to prevent existing schemas which we strongly related on like `auth.users` to be broken)
 
-3. Apply the rest of migrations (except the applied one) using `bun run db:migrate:apply`
+3. Apply the rest of migrations (except the applied one) using `bun run db:migrate:apply` 
+   1. (Optional) You can also build a new one (dont forget to delete the remaining migrations first) using `NAME=<migration-name> bun run db:migrate`
 
 4. Execute the seeder using `bun run db:seed`
    
-5. (Optional) Restrict all supabase client access without `service_role` key using RLS Policy
+5. (Recommended) Restrict all supabase client access without `service_role` key using RLS Policy
    ```sql
 
     -- Add Policy

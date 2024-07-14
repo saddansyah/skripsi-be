@@ -84,6 +84,7 @@ CREATE TABLE "public"."quests" (
     "id" SERIAL NOT NULL,
     "title" VARCHAR(100) NOT NULL,
     "desc" TEXT NOT NULL,
+    "img" TEXT NOT NULL DEFAULT '-',
     "type" "public"."QuestType" NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -92,14 +93,14 @@ CREATE TABLE "public"."quests" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."quests_log" (
+CREATE TABLE "public"."quests_logs" (
     "id" SERIAL NOT NULL,
     "point" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "user_id" UUID NOT NULL,
     "quest_id" INTEGER NOT NULL,
 
-    CONSTRAINT "quests_log_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "quests_logs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -116,14 +117,14 @@ CREATE TABLE "public"."quizzes" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."quiz_log" (
+CREATE TABLE "public"."quiz_logs" (
     "id" SERIAL NOT NULL,
     "point" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "user_id" UUID NOT NULL,
     "quiz_id" INTEGER NOT NULL,
 
-    CONSTRAINT "quiz_log_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "quiz_logs_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -138,7 +139,7 @@ CREATE TABLE "public"."profiles" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."achievement" (
+CREATE TABLE "public"."achievements" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(100) NOT NULL,
     "description" TEXT NOT NULL,
@@ -146,20 +147,20 @@ CREATE TABLE "public"."achievement" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "achievement_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "achievements_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "public"."assigned_achievement" (
+CREATE TABLE "public"."assigned_achievements" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "user_id" UUID NOT NULL,
     "achievement_id" INTEGER NOT NULL,
 
-    CONSTRAINT "assigned_achievement_pkey" PRIMARY KEY ("achievement_id","user_id")
+    CONSTRAINT "assigned_achievements_pkey" PRIMARY KEY ("achievement_id","user_id")
 );
 
 -- CreateTable
-CREATE TABLE "public"."evidence_rating" (
+CREATE TABLE "public"."evidence_ratings" (
     "value" INTEGER NOT NULL,
     "is_anonim" BOOLEAN NOT NULL,
     "point" INTEGER NOT NULL,
@@ -168,11 +169,11 @@ CREATE TABLE "public"."evidence_rating" (
     "user_id" UUID NOT NULL,
     "container_id" INTEGER NOT NULL,
 
-    CONSTRAINT "evidence_rating_pkey" PRIMARY KEY ("container_id","user_id")
+    CONSTRAINT "evidence_ratings_pkey" PRIMARY KEY ("container_id","user_id")
 );
 
 -- CreateTable
-CREATE TABLE "public"."learn" (
+CREATE TABLE "public"."learns" (
     "id" SERIAL NOT NULL,
     "title" VARCHAR(100) NOT NULL,
     "excerpt" VARCHAR(256) NOT NULL,
@@ -181,7 +182,7 @@ CREATE TABLE "public"."learn" (
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "learn_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "learns_pkey" PRIMARY KEY ("id")
 );
 
 -- AddForeignKey
@@ -200,28 +201,28 @@ ALTER TABLE "public"."waste_collects" ADD CONSTRAINT "waste_collects_user_id_fke
 ALTER TABLE "public"."waste_reports" ADD CONSTRAINT "waste_reports_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."quests_log" ADD CONSTRAINT "quests_log_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."quests_logs" ADD CONSTRAINT "quests_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."quests_log" ADD CONSTRAINT "quests_log_quest_id_fkey" FOREIGN KEY ("quest_id") REFERENCES "public"."quests"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."quests_logs" ADD CONSTRAINT "quests_logs_quest_id_fkey" FOREIGN KEY ("quest_id") REFERENCES "public"."quests"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."quiz_log" ADD CONSTRAINT "quiz_log_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."quiz_logs" ADD CONSTRAINT "quiz_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."quiz_log" ADD CONSTRAINT "quiz_log_quiz_id_fkey" FOREIGN KEY ("quiz_id") REFERENCES "public"."quizzes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "public"."quiz_logs" ADD CONSTRAINT "quiz_logs_quiz_id_fkey" FOREIGN KEY ("quiz_id") REFERENCES "public"."quizzes"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."profiles" ADD CONSTRAINT "profiles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."assigned_achievement" ADD CONSTRAINT "assigned_achievement_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."assigned_achievements" ADD CONSTRAINT "assigned_achievements_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."assigned_achievement" ADD CONSTRAINT "assigned_achievement_achievement_id_fkey" FOREIGN KEY ("achievement_id") REFERENCES "public"."achievement"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."assigned_achievements" ADD CONSTRAINT "assigned_achievements_achievement_id_fkey" FOREIGN KEY ("achievement_id") REFERENCES "public"."achievements"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."evidence_rating" ADD CONSTRAINT "evidence_rating_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."evidence_ratings" ADD CONSTRAINT "evidence_ratings_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."evidence_rating" ADD CONSTRAINT "evidence_rating_container_id_fkey" FOREIGN KEY ("container_id") REFERENCES "public"."waste_containers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."evidence_ratings" ADD CONSTRAINT "evidence_ratings_container_id_fkey" FOREIGN KEY ("container_id") REFERENCES "public"."waste_containers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -1,11 +1,6 @@
 import { t, Static } from 'elysia';
-import { Status } from '../utils/constants/status';
+import { ContainerType, Status } from '../utils/constants/enums';
 
-export enum ContainerType {
-    DEPO = "DEPO",
-    TONG = "TONG",
-    OTHER = "OTHER"
-}
 const WasteContainerModel = t.Object({
     id: t.Integer(),
     name: t.String({

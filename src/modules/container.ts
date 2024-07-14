@@ -8,7 +8,7 @@ import {
     updateContainerStatus,
 } from "./handlers/containerHandler";
 import { WasteContainerPayloadModel } from "../models/WasteContainer";
-import { Status } from "../utils/constants/status";
+import { Status } from "../utils/constants/enums";
 import { authenticate, authorize } from "../libs/auth";
 
 const routes = (app: Elysia) =>

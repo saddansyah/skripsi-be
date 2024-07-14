@@ -4,7 +4,8 @@ import { ErrorWithStatus } from "../../utils/exceptionBuilder";
 import db from "../../db/instance";
 import { WasteCollectPayloadModel, WasteCollectType } from "../../models/WasteCollect";
 import { successResponse } from "../../utils/responseBuilder";
-import { Status } from "../../utils/constants/status";
+import { Status } from "../../utils/constants/enums";
+import { uploadImage } from "../../services/supabase/utils";
 
 export const getMyWasteCollects = async (
     userId: string,
@@ -69,6 +70,7 @@ export const getMyWasteCollectById = async (
     }) => {
 
     try {
+
         const collect = await db.$queryRaw<WasteCollectType[]>`
         SELECT * FROM waste_collects
         WHERE 
@@ -106,7 +108,7 @@ export const getMyWasteCollectById = async (
 }
 
 // Set default point to 5
-export const addMyWasteCollect = async (userId: string, point: number, payload: Omit<WasteCollectType, 'id' | 'status' | 'created_at' | 'updated_at' | 'user_id' | 'point'>) => {
+export const addMyWasteCollect = async (userId: string, point: number, payload: Static<typeof WasteCollectPayloadModel>) => {
 
     try {
         const collect = await db.$queryRaw<WasteCollectType[]>`
@@ -188,6 +190,7 @@ export const updateMyWasteCollect = async (userId: string, id: number, payload: 
 
 export const deleteMyWasteCollect = async (userId: string, id: number) => {
     try {
+
         const collect = await db.$queryRaw<WasteCollectType[]>`
             DELETE FROM waste_collects
             WHERE 
@@ -198,6 +201,8 @@ export const deleteMyWasteCollect = async (userId: string, id: number) => {
 
         if (collect.length == 0)
             throw new ErrorWithStatus(`Collect with id ${collect[0].id} is already deleted`, 404, 'Not Found');
+
+        collect[0].img
 
         // Return JSON when success
         return successResponse<WasteCollectType>(

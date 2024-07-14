@@ -1,4 +1,4 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { cors } from '@elysiajs/cors'
 
 // Modules
@@ -7,9 +7,12 @@ import container from "./modules/container";
 import cluster from "./modules/cluster";
 import collect from "./modules/collect";
 import profile from "./modules/profile";
+import achievement from "./modules/achievement";
 import auth from "./modules/auth";
 import user from "./modules/user";
 import quiz from "./modules/quiz";
+import quest from "./modules/quest";
+import storage from "./modules/storage";
 
 // Utilities
 import { errorResponse } from "./utils/responseBuilder";
@@ -36,14 +39,17 @@ const app = new Elysia()
   .get("/", () => { return { hello: 'world!' } })
   .group('/api', (app) =>
     app
+      .use(storage)
       .use(auth)
       .use(profile)
+      .use(achievement)
       .use(container)
       .use(cluster)
       .use(collect)
       .use(user)
       .use(learn)
       .use(quiz)
+      .use(quest)
       .get("/", () => { return { hello: 'api ' } })
   )
   .listen(process.env.APP_PORT ?? 8080);

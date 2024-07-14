@@ -1,6 +1,6 @@
 import db from '../../db/instance';
 import { WasteContainerPayloadModel, WasteContainerType } from '../../models/WasteContainer';
-import { Status } from '../../utils/constants/status';
+import { Status } from '../../utils/constants/enums';
 import { successResponse } from '../../utils/responseBuilder';
 import { ErrorWithStatus } from '../../utils/exceptionBuilder';
 import { Prisma } from '@prisma/client';
