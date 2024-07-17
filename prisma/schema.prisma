@@ -567,6 +567,7 @@ model Learn {
   @@schema("public")
 }
 
+
 enum WasteType {
   MIXED
   B3

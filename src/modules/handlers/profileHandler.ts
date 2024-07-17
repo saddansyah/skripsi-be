@@ -6,6 +6,7 @@ import { AssignedAchievementType } from "../../models/Achievement";
 import { ProfileSchema, ProfileType } from "../../models/Profile";
 import { ErrorWithStatus } from "../../utils/exceptionBuilder";
 import { successResponse } from "../../utils/responseBuilder";
+import { getRankByPoint } from "../../utils/constants/ranks";
 
 export const getMyProfile = async (userId: string) => {
     try {
@@ -18,9 +19,9 @@ export const getMyProfile = async (userId: string) => {
                     UNION ALL
                     SELECT user_id, point FROM waste_reports WHERE user_id=${userId}::uuid
                     UNION ALL
-                    SELECT user_id, point FROM quiz_log WHERE user_id=${userId}::uuid
+                    SELECT user_id, point FROM quiz_logs WHERE user_id=${userId}::uuid
                     UNION ALL
-                    SELECT user_id, point FROM quests_log WHERE user_id=${userId}::uuid
+                    SELECT user_id, point FROM quests_logs WHERE user_id=${userId}::uuid
                     UNION ALL 
                     SELECT user_id, additional_point as point FROM profiles WHERE user_id=${userId}::uuid
                 ) f on u.id = f.user_id
@@ -31,11 +32,13 @@ export const getMyProfile = async (userId: string) => {
             LIMIT 1
         `;
 
+        const rank = getRankByPoint(profile[0].total_points);
+
         // Return JSON when success
         return successResponse<ProfileType>(
             {
                 message: "Your profile is ready",
-                data: profile
+                data: [{ ...profile[0], rank: rank?.title! }]
             }
         )
     }
@@ -62,9 +65,9 @@ export const getLeaderboard = async (options?: { limit?: number }) => {
                     UNION ALL
                     SELECT user_id, point FROM waste_reports
                     UNION ALL
-                    SELECT user_id, point FROM quiz_log
+                    SELECT user_id, point FROM quiz_logs
                     UNION ALL
-                    SELECT user_id, point FROM quests_log
+                    SELECT user_id, point FROM quests_logs
                     UNION ALL 
                     SELECT user_id, additional_point as point FROM profiles
                 ) as f on u.id = f.user_id

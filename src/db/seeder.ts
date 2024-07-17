@@ -472,10 +472,9 @@ const seed = async () => {
             data: a,
         });
     };
-
-
-
 }
+
+
 
 const main = async () => {
     try {

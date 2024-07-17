@@ -26,7 +26,7 @@ export const getUsers = async (
                     UNION ALL
                     SELECT user_id, point FROM waste_reports
                     UNION ALL
-                    SELECT user_id, point FROM quiz_log
+                    SELECT user_id, point FROM quiz_logs
                     UNION ALL
                     SELECT user_id, point FROM quests_log
                     UNION ALL 
@@ -77,7 +77,7 @@ export const getUserById = async (id: string) => {
                     UNION ALL
                     SELECT user_id, point FROM waste_reports
                     UNION ALL
-                    SELECT user_id, point FROM quiz_log
+                    SELECT user_id, point FROM quiz_logs
                     UNION ALL
                     SELECT user_id, point FROM quests_log
                     UNION ALL 
@@ -131,7 +131,7 @@ export const deleteUser = async (id: string, userId: string) => {
         `;
 
         if (users.length == 0)
-            throw new ErrorWithStatus(`User with id ${users[0].id} is deleted`, 404, 'Not Found');
+            throw new ErrorWithStatus(`User with id ${users[0].user_id} is deleted`, 404, 'Not Found');
 
         return successResponse<ProfileType>(
             {
