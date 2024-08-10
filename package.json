@@ -3,22 +3,21 @@
   "version": "1.0.50",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "NODE_ENV=development dotenv -e .env.development -- bun run --watch src/index.ts",
-    "prod": "NODE_ENV=production dotenv -e .env.production -- bun run --watch src/index.ts",
-    "db:migrate": "dotenv -e .env.development -- bunx prisma migrate dev --name $NAME",
-    "db:migrate:apply": "dotenv -e .env.development -- bunx prisma migrate dev",
-    "db:migrate:create-only": "dotenv -e .env.development -- bunx prisma migrate dev --name $NAME --create-only",
-    "db:migrate:deploy": "dotenv -e .env.development -- bunx prisma migrate deploy",
-    "db:migrate:resolve": "dotenv -e .env.development -- bunx prisma migrate resolve --applied $APPLIED",
-    "db:pull": "dotenv -e .env.development -- bunx prisma db pull",
-    "db:seed": "dotenv -e .env.development -- bunx prisma db seed"
+    "dev": "NODE_ENV=development bun run --watch src/index.ts",
+    "prod": "bun run --watch src/index.ts",
+    "db:migrate": "bunx prisma migrate dev --name $NAME",
+    "db:migrate:apply": "bunx prisma migrate dev",
+    "db:migrate:create-only": "bunx prisma migrate dev --name $NAME --create-only",
+    "db:migrate:deploy": "bunx prisma migrate deploy",
+    "db:migrate:resolve": "bunx prisma migrate resolve --applied $APPLIED",
+    "db:pull": "bunx prisma db pull",
+    "db:seed": "bunx prisma db seed"
   },
   "dependencies": {
-    "@elysiajs/cookie": "^0.8.0",
     "@elysiajs/cors": "^1.0.4",
+    "@elysiajs/stream": "^1.1.0",
     "@prisma/client": "^5.16.1",
     "@supabase/supabase-js": "^2.44.3",
-    "dotenv-cli": "^7.4.2",
     "elysia": "latest",
     "prisma": "^5.16.1"
   },

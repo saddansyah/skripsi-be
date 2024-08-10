@@ -17,30 +17,34 @@ import storage from "./modules/storage";
 // Utilities
 import { errorResponse } from "./utils/responseBuilder";
 import { ErrorWithStatus } from "./utils/exceptionBuilder";
+import { authenticate } from "./libs/auth";
+import { logger } from "./libs/logger";
 
 const app = new Elysia()
-  .error({ ErrorWithStatus }) // register custom error
-  .onError(({ error, code }) => {
-    console.error(error.stack);
-    switch (code) {
+  .use(logger)
+  .error({ ErrorWithStatus })
+  .onError((ctx) => {
+    switch (ctx.code) {
       case 'ErrorWithStatus':
-        return errorResponse({ status: error.status, error: error.name, message: error.message });
+        return errorResponse({ status: ctx.error.status, error: ctx.error.name, message: ctx.error.message });
       case 'VALIDATION':
-        if (error.message.startsWith('{\n'))
-          return errorResponse({ status: 400, error: "Validation Error", message: error.validator.Errors(error.value).First().message });
-        return errorResponse({ status: 400, error: "Validation Error", message: error.message });
+        if (ctx.error.message.startsWith('{\n'))
+          return errorResponse({ status: 400, error: "Validation Error", message: ctx.error.validator.Errors(ctx.error.value).First().message });
+        return errorResponse({ status: 400, error: "Validation Error", message: ctx.error.message });
       case 'NOT_FOUND':
         return errorResponse({ status: 404, error: "Not Found", message: "Your requested url is not found" });
       default:
-        return errorResponse({ status: 500, error: "Internal Server Error", message: error.message });
+        return errorResponse({ status: 500, error: "Internal Server Error", message: ctx.error.message });
     }
   })
   .use(cors())
   .get("/", () => { return { hello: 'world!' } })
   .group('/api', (app) =>
     app
-      .use(storage)
       .use(auth)
+      // authenticated routes
+      .use(authenticate)
+      .use(storage)
       .use(profile)
       .use(achievement)
       .use(container)

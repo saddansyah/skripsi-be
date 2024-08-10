@@ -1,3 +1,5 @@
+import { SessionType } from "../models/Session";
+
 type SuccessResponseType<T> = {
     message: string;
     data: Array<T>
@@ -7,6 +9,11 @@ type ErrorResponseType<T> = {
     status: number,
     error: string,
     message: string
+}
+
+type StreamResponseType<T> = {
+    event: string,
+    data: SessionType | null
 }
 
 export const successResponse = <T>(payload: { data: Array<T>, message: string }): SuccessResponseType<T> => {
@@ -23,4 +30,11 @@ export const errorResponse = <T>(payload: { status: number, error: string, messa
         message: payload.message,
     };
 };
+
+export const streamResponse = <T>(payload: { event: string, data: SessionType | null }): StreamResponseType<T> => {
+    return {
+        event: payload.event,
+        data: payload.data,
+    }
+}
 

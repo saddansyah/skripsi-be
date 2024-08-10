@@ -38,7 +38,7 @@ export const getMyProfile = async (userId: string) => {
         return successResponse<ProfileType>(
             {
                 message: "Your profile is ready",
-                data: [{ ...profile[0], rank: rank?.title! }]
+                data: [{ ...profile[0], rank: rank?.title ?? 'Environmental Noobie' }]
             }
         )
     }
@@ -99,9 +99,9 @@ export const getMyAchievement = async (userId: string) => {
     try {
         const achievement = await db.$queryRaw<AssignedAchievementType[]>`
             SELECT a.id, a.name, a.description, a.img 
-            FROM assigned_achievement
-                FULL OUTER JOIN auth.users AS u ON assigned_achievement.user_id = u.id 
-                FULL OUTER JOIN achievement AS a ON assigned_achievement.achievement_id = a.id 
+            FROM assigned_achievements
+                FULL OUTER JOIN auth.users AS u ON assigned_achievements.user_id = u.id 
+                FULL OUTER JOIN achievements AS a ON assigned_achievements.achievement_id = a.id 
             WHERE u.id = ${userId}::uuid;
         `;
 

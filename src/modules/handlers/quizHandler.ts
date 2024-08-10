@@ -45,12 +45,7 @@ export const getQuizById = async (id: number) => {
         `
 
         if (quiz.length == 0) {
-            return successResponse<UserQuizType>(
-                {
-                    message: `Quiz with id ${id} is empty`,
-                    data: quiz
-                }
-            )
+            throw new ErrorWithStatus('Quiz is not found', 404);
         }
 
         return successResponse<UserQuizType>(

@@ -528,7 +528,7 @@ model Achievement {
 
 model AssignedAchievement {
   created_at     DateTime    @default(now())
-  user           users       @relation(fields: [user_id], references: [id])
+  user           users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user_id        String      @db.Uuid
   achievement    Achievement @relation(fields: [achievement_id], references: [id])
   achievement_id Int
@@ -544,7 +544,7 @@ model EvidenceRating {
   point        Int
   info         String?
   created_at   DateTime       @default(now())
-  user         users          @relation(fields: [user_id], references: [id])
+  user         users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user_id      String         @db.Uuid
   container    WasteContainer @relation(fields: [container_id], references: [id])
   container_id Int
@@ -566,7 +566,6 @@ model Learn {
   @@map("learns")
   @@schema("public")
 }
-
 
 enum WasteType {
   MIXED

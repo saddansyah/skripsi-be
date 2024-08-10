@@ -43,12 +43,7 @@ export const getQuestById = async (id: number) => {
         `
 
         if (quest.length == 0) {
-            return successResponse<QuestType>(
-                {
-                    message: `Quest with id ${id} is empty`,
-                    data: quest
-                }
-            )
+            throw new ErrorWithStatus('Quest is not found', 404);
         }
 
         return successResponse<QuestType>(

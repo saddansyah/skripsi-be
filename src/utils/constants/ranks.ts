@@ -31,7 +31,7 @@ const RANK = [
     },
 ]
 
-export const getRankByPoint = (point: number) => RANK.findLast((rank) => point > rank.sum_point);
+export const getRankByPoint = (point: number) => RANK.findLast((rank) => point >= rank.sum_point);
 
 
 

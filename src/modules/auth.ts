@@ -1,67 +1,64 @@
-import Elysia, { Cookie } from "elysia";
+import Elysia, { Cookie, t } from "elysia";
 import supabase from "../services/supabase/instance";
 import { ErrorWithStatus } from "../utils/exceptionBuilder";
-import db from "../db/instance";
-import { successResponse } from "../utils/responseBuilder";
+import { streamResponse, successResponse } from "../utils/responseBuilder";
+import Stream from "@elysiajs/stream";
 
 const routes = (app: Elysia) =>
     app.group('/auth', (app) =>
         app
-            .get(
-                '/refresh',
-                async ({ cookie }) => {
-                    const access_token = cookie.access_token as Cookie<string>
-                    const refresh_token = cookie.refresh_token as Cookie<string>
+            .post('/signout', async () => {
+                await supabase.auth.signOut();
+            })
+            .post('/signin/google', async ({ body }) => {
+                await supabase.auth.signInWithIdToken({
+                    provider: 'google',
+                    access_token: body.accessToken,
+                    token: body.idToken,
+                })
+            },
+                {
+                    body: t.Object({ idToken: t.String(), accessToken: t.String() })
+                }
+            )
+            .get('/state', ({ set }) => {
+                const stream = new Stream();
 
+                const { data } = supabase.auth.onAuthStateChange((e, s) => {
+                    
+                    stream.send(streamResponse({
+                        event: e,
+                        data: s ? {
+                            accessToken: s.access_token,
+                            refreshToken: s.refresh_token
+                        } : null
+                    }))
+
+                });
+
+                return stream;
+            })
+            .post(
+                '/refresh',
+                async ({ body }) => {
                     const { data, error } = await supabase.auth.refreshSession({
-                        refresh_token: refresh_token.value
-                    })
+                        refresh_token: body.refreshToken
+                    });
 
                     if (error) throw new ErrorWithStatus('Refresh token is invalid', 401, 'Unauthenticated');
 
-                    access_token.value = data.session!.access_token;
-                    refresh_token.value = data.session!.refresh_token;
-
-                    return data.user
-                }
-            )
-            .get(
-                'create-profile',
-                async ({ cookie }) => {
-                    // Assume that cookie is always fresh 
-
-                    try {
-                        const access_token = cookie['access_token'] as Cookie<string>;
-
-                        if (!access_token.value) {
-                            throw new ErrorWithStatus(`Your access token is empty or invalid. Please refresh session.`, 401, 'Unauthenticated');
+                    return successResponse<any>(
+                        {
+                            message: `Session is refreshed`,
+                            data: [{
+                                access_token: data.session!.access_token,
+                                refresh_token: data.session!.refresh_token
+                            }]
                         }
-
-                        const { data, error } = await supabase.auth.getUser(access_token.value);
-
-                        const profile = await db.$queryRaw<any>`
-                            INSERT INTO profiles (user_id, is_admin, additional_point, created_at, updated_at)
-                            VALUES (
-                                ${data.user?.id}::uuid,
-                                false,
-                                DEFAULT,
-                                now(),
-                                now()
-                            )
-                            RETURNING *;
-                        `
-
-                        return successResponse<any>(
-                            {
-                                message: `Default profile successfully created`,
-                                data: profile
-                            }
-                        )
-                    }
-                    catch (e: any) {
-                        throw new ErrorWithStatus(e.message, e.status, e.name);
-                    }
-
+                    );
+                },
+                {
+                    body: t.Object({ refreshToken: t.String() })
                 }
             )
     )

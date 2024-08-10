@@ -59,12 +59,7 @@ export const getAchievementById = async (id: number) => {
         `
 
         if (achievement.length == 0) {
-            return successResponse<AchievementType>(
-                {
-                    message: `Achievement with ${id} is empty`,
-                    data: achievement
-                }
-            )
+            throw new ErrorWithStatus('Achievement is not found', 404);
         }
 
         // Return JSON when success

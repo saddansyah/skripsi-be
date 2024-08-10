@@ -60,12 +60,7 @@ export const getClusterById = async (id: number) => {
 
         // Messages is empty when empty
         if (cluster.length == 0) {
-            return successResponse<WasteClusterType>(
-                {
-                    message: "Cluster is empty",
-                    data: cluster
-                }
-            )
+            throw new ErrorWithStatus('Cluster is not found', 404);
         }
 
         // Return JSON when success

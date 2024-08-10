@@ -1,5 +1,5 @@
 import Elysia, { t } from "elysia";
-import { addCluster, deleteCluster, getClusters, updateCluster } from "./handlers/clusterHandler";
+import { addCluster, deleteCluster, getClusterById, getClusters, updateCluster } from "./handlers/clusterHandler";
 import { getContainerById } from "./handlers/containerHandler";
 import { WasteClusterPayloadType } from "../models/WasteCluster";
 import { authenticate, authorize } from "../libs/auth";
@@ -34,7 +34,7 @@ const routes = (app: Elysia) =>
                                 }
                             )
                             .get('/:id',
-                                ({ params }) => getContainerById(params.id),
+                                ({ params }) => getClusterById(params.id),
                                 {
                                     params: t.Object({
                                         id: t.Numeric({ error: 'Param id must be a number' })

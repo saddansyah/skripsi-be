@@ -91,12 +91,7 @@ export const getUserById = async (id: string) => {
         `;
 
         if (users.length == 0) {
-            return successResponse<ProfileType & {}>(
-                {
-                    message: "No user with corresponding id",
-                    data: users
-                }
-            )
+            throw new ErrorWithStatus('User is not found', 404);
         }
 
         return successResponse<ProfileType & { 'updated_at': string, 'created_at': string }>(

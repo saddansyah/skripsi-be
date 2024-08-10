@@ -24,10 +24,10 @@ export const getMyWasteCollects = async (
         const offset = ((options?.page ?? 1) - 1) * (limit);
 
         const collects = await db.$queryRaw<WasteCollectType[]>`
-            SELECT co.id, co.type, co.status, co.point, co.created_at, cn.name as container FROM waste_collects AS co
+            SELECT co.id, co.type, co.status, co.img, co.point, co.created_at, cn.id as container_id, cn.name as container_name FROM waste_collects AS co
             INNER JOIN waste_containers AS cn ON co.container_id = cn.id
             WHERE
-                user_id=${userId}::uuid
+                co.user_id=${userId}::uuid
                 ${options?.status ? Prisma.sql` AND "status"::text=${options?.status.toUpperCase()} ` : Prisma.empty}
                 ${options?.type ? Prisma.sql` AND "type"::text=${options?.type.toUpperCase()} ` : Prisma.empty}
                 ${options?.container_id ? Prisma.sql` AND "container_id"::int4=${options?.container_id} ` : Prisma.empty}
@@ -72,21 +72,17 @@ export const getMyWasteCollectById = async (
     try {
 
         const collect = await db.$queryRaw<WasteCollectType[]>`
-        SELECT * FROM waste_collects
+        SELECT co.*, cn.name as container_name FROM waste_collects as co
+        INNER JOIN waste_containers AS cn ON co.container_id = cn.id
         WHERE 
-            user_id=${userId}::uuid 
-            AND id=${id}
+            co.user_id=${userId}::uuid 
+            AND co.id=${id}
             ${options?.status ? Prisma.sql` AND "status"::text=${options?.status.toUpperCase()} ` : Prisma.empty}
         LIMIT 1;
         `;
 
         if (collect.length == 0) {
-            return successResponse<WasteCollectType>(
-                {
-                    message: "Your waste collect is empty",
-                    data: collect
-                }
-            )
+            throw new ErrorWithStatus('My waste collect is not found', 404);
         }
 
         // Return JSON when success
@@ -241,7 +237,7 @@ export const getWasteCollects = async (
         const offset = ((options?.page ?? 1) - 1) * (limit);
 
         const collects = await db.$queryRaw<WasteCollectType[]>`
-            SELECT co.id, co.type, co.status, co.point, co.created_at, cn.name as container, co.is_anonim,
+            SELECT co.id, co.type, co.status, co.point, co.created_at, cn.id as container_id, cn.name as container_name, co.is_anonim,
                 (CASE WHEN co.is_anonim = true THEN 'Anonim' ELSE u.email END) AS reporter_email 
             FROM waste_collects AS co 
             INNER JOIN waste_containers AS cn ON co.container_id = cn.id 
@@ -296,12 +292,7 @@ export const getWasteCollectById = async (
         `;
 
         if (collect.length == 0) {
-            return successResponse<WasteCollectType>(
-                {
-                    message: "Waste collect is empty",
-                    data: collect
-                }
-            )
+            throw new ErrorWithStatus('Waste collect is not found', 404);
         }
 
         // Return JSON when success

@@ -23,7 +23,7 @@ export const getContainers = async (
 
         // Database querys
         const containers = await db.$queryRaw<WasteContainerType[]>`
-            SELECT cn.id, cn.name, cn.type, cn.rating, cn.status, cl.name as cluster FROM waste_containers as cn
+            SELECT cn.id, cn.name, cn.type, cn.rating, cn.status, cl.id as cluster_id, cl.name as cluster_name FROM waste_containers as cn
             INNER JOIN waste_clusters as cl ON cn.cluster_id = cl.id
                 ${options?.status ? Prisma.sql` WHERE "status"::text=${options?.status.toUpperCase()} ` : Prisma.empty}
                 ${options?.type ? Prisma.sql` AND "type"::text=${options?.type.toUpperCase()} ` : Prisma.empty} 
@@ -73,12 +73,7 @@ export const getContainerById = async (id: number, options?: { status: string })
 
         // Messages is empty when empty
         if (container.length == 0) {
-            return successResponse<WasteContainerType>(
-                {
-                    message: "Container is empty",
-                    data: container
-                }
-            )
+            throw new ErrorWithStatus('Container is not found', 404);
         }
 
         // Return JSON when success

@@ -62,12 +62,7 @@ export const getLearnById = async (id: number) => {
         `;
 
         if (learns.length == 0) {
-            return successResponse<LearnType>(
-                {
-                    message: "Learns is empty",
-                    data: learns
-                }
-            )
+            throw new ErrorWithStatus('Learn is not found', 404);
         }
 
         // Return JSON when success
