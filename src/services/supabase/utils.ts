@@ -7,7 +7,7 @@ export const generateBucket = (name: string) => {
 
 export const updateImage = async (path: string, file: File) => {
     const { data, error } = await supabase.storage.from(process.env.BUCKET_NAME!).update(path, file, {
-        contentType: 'image/*',
+        contentType: 'image/jpg',
     });
 
     if (error) {
@@ -22,8 +22,9 @@ export const uploadImage = async (folder: string, file: File) => {
     const uniqueString = btoa(folder + Date.now());
     const { data, error } = await supabase.storage.from(process.env.BUCKET_NAME!).upload(`${folder}/${uniqueString}`, file, {
         upsert: false,
-        contentType: 'image/*',
+        contentType: 'image/jpeg',
     })
+
 
     if (error)
         throw new ErrorWithStatus(error.message, 500, 'Upload Error')
@@ -32,10 +33,11 @@ export const uploadImage = async (folder: string, file: File) => {
 }
 
 export const deleteImage = async (path: string) => {
+    console.log(path);
     const { data, error } = await supabase.storage.from(process.env.BUCKET_NAME!).remove([path]);
 
     if (error)
-        throw new ErrorWithStatus(error.message, 500, 'Upload Error')
+        throw new ErrorWithStatus(error.message, 500, 'Delete Error')
 
     return data;
 

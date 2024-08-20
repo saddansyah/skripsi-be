@@ -7,10 +7,11 @@ import { COLLECT_POINT } from "../utils/constants/point";
 
 const routes = (app: Elysia) =>
     app
-        .use(authenticate)
         .group('/collect', (app) =>
             app
+                .use(authenticate)
                 .get('/', ({ query, userId }) => getMyWasteCollects(userId, {
+                    search: query?.search,
                     page: query?.page,
                     limit: query?.limit,
                     status: query?.status,
@@ -21,6 +22,7 @@ const routes = (app: Elysia) =>
                 }),
                     {
                         query: t.Object({
+                            search: t.Optional(t.String()),
                             page: t.Optional(t.Numeric()),
                             limit: t.Optional(t.Numeric()),
                             status: t.Optional(t.String()),
@@ -42,7 +44,9 @@ const routes = (app: Elysia) =>
                     }
                 )
                 .post('/',
-                    ({ body, userId }) => addMyWasteCollect(userId, COLLECT_POINT, body),
+                    ({ body, userId }) => {
+                        addMyWasteCollect(userId, COLLECT_POINT, body);
+                    },
                     {
                         body: WasteCollectPayloadModel
                     }

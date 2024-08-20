@@ -6,12 +6,12 @@ import { ErrorWithStatus } from "../utils/exceptionBuilder";
 
 const routes = (app: Elysia) =>
     app
-        .use(authenticate)
         .group('/image', (app) =>
             app
-                .delete('/delete/*',
-                    async ({ params }) => {
-                        const response = await deleteImage(params['*']);
+                .use(authenticate)
+                .delete('/',
+                    async ({ query }) => {
+                        const response = await deleteImage(query.path);
 
                         if (response.length === 0)
                             throw new ErrorWithStatus('Incorrect image path', 400, 'Bad Request');
@@ -23,8 +23,8 @@ const routes = (app: Elysia) =>
 
                     },
                     {
-                        params: t.Object({
-                            '*': t.String({ error: 'ID must be in correct format (string)' })
+                        query: t.Object({
+                            path: t.String({ error: 'Path must be in correct format (string)' })
                         })
                     }
                 )

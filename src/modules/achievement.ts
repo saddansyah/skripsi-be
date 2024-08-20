@@ -4,9 +4,9 @@ import { getAchievementById, getAchievements } from "./handlers/achievementHandl
 
 const routes = (app: Elysia) =>
     app
-        .use(authenticate)
         .group('/achievement', (app) =>
             app
+                .use(authenticate)
                 .get('/',
                     ({ query }) => getAchievements({
                         page: query?.page,

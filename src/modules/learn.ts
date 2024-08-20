@@ -4,9 +4,9 @@ import { getLearnById, getLearns } from "./handlers/learnHandler";
 
 const routes = (app: Elysia) =>
     app
-        .use(authenticate)
         .group('/learn', (app) =>
             app
+                .use(authenticate)
                 .get('/', ({ query }) => getLearns({
                     page: query?.page,
                     limit: query?.limit,

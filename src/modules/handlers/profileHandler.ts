@@ -15,9 +15,9 @@ export const getMyProfile = async (userId: string) => {
             FROM auth.users as u 
                 FULL OUTER JOIN profiles AS p ON u.id = p.user_id 
                 FULL OUTER JOIN (
-                    SELECT user_id, point FROM waste_collects WHERE user_id=${userId}::uuid
+                    SELECT user_id, point FROM waste_collects WHERE user_id=${userId}::uuid AND status='ACCEPTED'
                     UNION ALL
-                    SELECT user_id, point FROM waste_reports WHERE user_id=${userId}::uuid
+                    SELECT user_id, point FROM waste_reports WHERE user_id=${userId}::uuid AND status='ACCEPTED'
                     UNION ALL
                     SELECT user_id, point FROM quiz_logs WHERE user_id=${userId}::uuid
                     UNION ALL

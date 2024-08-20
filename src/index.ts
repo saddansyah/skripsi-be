@@ -44,10 +44,10 @@ const app = new Elysia()
       .use(auth)
       // authenticated routes
       .use(authenticate)
+      .use(container)
       .use(storage)
       .use(profile)
       .use(achievement)
-      .use(container)
       .use(cluster)
       .use(collect)
       .use(user)
@@ -57,6 +57,7 @@ const app = new Elysia()
       .get("/", () => { return { hello: 'api ' } })
   )
   .listen(process.env.APP_PORT ?? 8080);
+// .listen({ port: 80, hostname: '192.168.223.131' });
 
 console.log(
   `Server is running at ${app.server?.hostname}:${app.server?.port} on ${process.env.NODE_ENV} mode`

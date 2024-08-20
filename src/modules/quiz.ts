@@ -5,9 +5,9 @@ import { QuizLogPayload } from "../models/Quiz";
 
 const routes = (app: Elysia) =>
     app
-        .use(authenticate)
         .group('/quiz', (app) =>
             app
+                .use(authenticate)
                 .get('/', ({ userId }) => getRandomQuiz(userId))
                 .group('/log', (app) =>
                     app

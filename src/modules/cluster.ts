@@ -6,9 +6,33 @@ import { authenticate, authorize } from "../libs/auth";
 
 const routes = (app: Elysia) =>
     app
-        .use(authenticate)
         .group('/cluster', (app) =>
             app
+                .use(authenticate)
+                .get('/',
+                    ({ query }) => getClusters({
+                        page: query?.page,
+                        limit: query?.limit,
+                        sortBy: query?.sortBy,
+                        order: query?.order,
+                    }),
+                    {
+                        query: t.Object({
+                            page: t.Optional(t.Numeric()),
+                            limit: t.Optional(t.Numeric()),
+                            sortBy: t.Optional(t.String()),
+                            order: t.Optional(t.String())
+                        })
+                    }
+                )
+                .get('/:id',
+                    ({ params }) => getClusterById(params.id),
+                    {
+                        params: t.Object({
+                            id: t.Numeric({ error: 'Param id must be a number' })
+                        })
+                    }
+                )
                 .guard(
                     {
                         beforeHandle({ userId }) {
@@ -17,30 +41,6 @@ const routes = (app: Elysia) =>
                     },
                     (app) =>
                         app
-                            .get('/',
-                                ({ query }) => getClusters({
-                                    page: query?.page,
-                                    limit: query?.limit,
-                                    sortBy: query?.sortBy,
-                                    order: query?.order,
-                                }),
-                                {
-                                    query: t.Object({
-                                        page: t.Optional(t.Numeric()),
-                                        limit: t.Optional(t.Numeric()),
-                                        sortBy: t.Optional(t.String()),
-                                        order: t.Optional(t.String())
-                                    })
-                                }
-                            )
-                            .get('/:id',
-                                ({ params }) => getClusterById(params.id),
-                                {
-                                    params: t.Object({
-                                        id: t.Numeric({ error: 'Param id must be a number' })
-                                    })
-                                }
-                            )
                             .post('/',
                                 ({ body }) => addCluster(body),
                                 {

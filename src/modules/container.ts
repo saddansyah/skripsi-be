@@ -6,6 +6,8 @@ import {
     updateContainer,
     deleteContainer,
     updateContainerStatus,
+    getPublicContainers,
+    getPublicContainerById,
 } from "./handlers/containerHandler";
 import { WasteContainerPayloadModel } from "../models/WasteContainer";
 import { Status } from "../utils/constants/enums";
@@ -13,11 +15,26 @@ import { authenticate, authorize } from "../libs/auth";
 
 const routes = (app: Elysia) =>
     app
-        .use(authenticate)
         .group('/container', (app) =>
             app
+                .group('/public', (app) =>
+                    app
+                        .get('/',
+                            () => getPublicContainers()
+                        )
+                        .get('/:id',
+                            ({ params }) => getPublicContainerById(params.id),
+                            {
+                                params: t.Object({
+                                    id: t.Numeric({ error: 'Param id must be a number' })
+                                })
+                            }
+                        )
+                )
+                .use(authenticate)
                 .get('/',
                     ({ query }) => getContainers({
+                        search: query?.search,
                         page: query?.page,
                         limit: query?.limit,
                         status: query?.status,
@@ -28,6 +45,7 @@ const routes = (app: Elysia) =>
                     }),
                     {
                         query: t.Object({
+                            search: t.Optional(t.String()),
                             page: t.Optional(t.Numeric()),
                             limit: t.Optional(t.Numeric()),
                             status: t.Optional(t.String()),

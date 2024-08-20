@@ -23,7 +23,7 @@ const WasteContainerModel = t.Object({
 
 export const WasteContainerPayloadModel = t.Omit(
     WasteContainerModel,
-    ['id', 'created_at', 'updated_at', 'status', 'user_id', 'point']
+    ['id', 'created_at', 'updated_at', 'status', 'user_id', 'point', 'rating']
 )
 export type WasteContainerType = Static<typeof WasteContainerModel>;
 

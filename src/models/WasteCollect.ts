@@ -6,7 +6,7 @@ const WasteCollectModel = t.Object({
     kg: t.Number({ error: 'Your kg field is missing' }),
     vol: t.Number({ error: 'Your vol field is missing' }),
     type: t.Enum(WasteType, { error: 'Your type field is missing' }),
-    img: t.Union([t.String(), t.File({ maxSize: '20m' })]),
+    img: t.String(),
     point: t.Number({ error: 'Your point field is missing' }),
     info: t.Nullable(t.String()),
     is_anonim: t.Boolean({ error: 'Your type is_anonim is missing' }),

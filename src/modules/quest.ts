@@ -5,9 +5,9 @@ import { accomplishQuest, getQuestById, getRandomQuest } from "./handlers/questH
 
 const routes = (app: Elysia) =>
     app
-        .use(authenticate)
         .group('/quest', (app) =>
             app
+                .use(authenticate)
                 .get('/',
                     ({ userId }) => getRandomQuest(userId)
                 )

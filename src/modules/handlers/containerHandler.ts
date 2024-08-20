@@ -7,8 +7,46 @@ import { Prisma } from '@prisma/client';
 import { Static } from 'elysia';
 import { CONTAINER_POINT } from '../../utils/constants/point';
 
+export const getPublicContainers = async () => {
+    try {
+        // Database query
+        const containers = await db.$queryRaw<WasteContainerType[]>`
+        SELECT cn.id, cn.name, cn.lat, cn.long FROM waste_containers as cn 
+        WHERE 
+            cn.status='ACCEPTED'
+        `;
+
+        // Messages is empty when empty
+        if (containers.length == 0) {
+            return successResponse<WasteContainerType>(
+                {
+                    message: "Container is empty",
+                    data: containers
+                }
+            )
+        }
+
+        // Return JSON when success
+        return successResponse<WasteContainerType>(
+            {
+                message: "Container is ready",
+                data: containers
+            }
+        )
+    }
+    catch (e: any) {
+        switch (e.constructor) {
+            case Prisma.PrismaClientKnownRequestError:
+                throw new ErrorWithStatus(e.message, 500);
+            default:
+                throw new ErrorWithStatus(e.message, e.status, e.name);
+        }
+    }
+}
+
 export const getContainers = async (
     options?: {
+        search?: string,
         page?: number,
         limit?: number,
         status?: string,
@@ -23,9 +61,10 @@ export const getContainers = async (
 
         // Database querys
         const containers = await db.$queryRaw<WasteContainerType[]>`
-            SELECT cn.id, cn.name, cn.type, cn.rating, cn.status, cl.id as cluster_id, cl.name as cluster_name FROM waste_containers as cn
+            SELECT cn.id, cn.name, cn.type, cn.rating, cn.lat, cn.long, cn.status, cn.user_id, cl.id as cluster_id, cl.name as cluster_name FROM waste_containers as cn
             INNER JOIN waste_clusters as cl ON cn.cluster_id = cl.id
-                ${options?.status ? Prisma.sql` WHERE "status"::text=${options?.status.toUpperCase()} ` : Prisma.empty}
+                ${options?.search ? Prisma.sql` WHERE cn."name"::text LIKE ${`%${options?.search || ''}%`} ` : Prisma.empty} 
+                ${options?.status ? Prisma.sql` AND "status"::text=${options?.status.toUpperCase()} ` : Prisma.empty}
                 ${options?.type ? Prisma.sql` AND "type"::text=${options?.type.toUpperCase()} ` : Prisma.empty} 
                 ${options?.cluster_id ? Prisma.sql` AND "cluster_id"::int4=${options?.cluster_id} ` : Prisma.empty} 
             ORDER BY ${Prisma.sql([options?.sortBy ? `cn.${options?.sortBy}` : `cn.name`])} ${Prisma.sql([options?.order ?? 'asc'])} 
@@ -60,14 +99,50 @@ export const getContainers = async (
     }
 }
 
+export const getPublicContainerById = async (id: number) => {
+    try {
+        // Database query
+        const container = await db.$queryRaw<WasteContainerType[]>`
+        SELECT cn.id, cn.name, cn.lat, cn.long as cluster_name FROM waste_containers as cn 
+        WHERE 
+            cn.id=${id} AND 
+            cn.status='ACCEPTED'
+        LIMIT 1;
+        `;
+
+        // Messages is empty when empty
+        if (container.length == 0) {
+            throw new ErrorWithStatus('Container is not found', 404);
+        }
+
+        // Return JSON when success
+        return successResponse<WasteContainerType>(
+            {
+                message: "Container is ready",
+                data: container
+            }
+        )
+    }
+    catch (e: any) {
+        switch (e.constructor) {
+            case Prisma.PrismaClientKnownRequestError:
+                throw new ErrorWithStatus(e.message, 500);
+            default:
+                throw new ErrorWithStatus(e.message, e.status, e.name);
+        }
+    }
+}
+
+
 export const getContainerById = async (id: number, options?: { status: string }) => {
     try {
         // Database query
         const container = await db.$queryRaw<WasteContainerType[]>`
-        SELECT * FROM waste_containers
+        SELECT cn.*, cl.name as cluster_name FROM waste_containers as cn
+        INNER JOIN waste_clusters as cl ON cn.cluster_id = cl.id 
         WHERE 
-            id=${id}
-            ${options?.status ? Prisma.sql` AND "status"::text=${options?.status.toUpperCase()} ` : Prisma.empty}
+            cn.id=${id}
+            ${options?.status ? Prisma.sql` AND "cn.status"::text=${options?.status.toUpperCase()} ` : Prisma.empty}
         LIMIT 1;
         `;
 
@@ -106,7 +181,7 @@ export const addContainer = async (userId: string, payload: Static<typeof WasteC
                     DEFAULT, 
                     ${payload.name}, 
                     ${payload.type}::"ContainerType",
-                    ${payload.rating}, 
+                    0, 
                     ${payload.max_kg}, 
                     ${payload.max_vol}, 
                     ${payload.lat}, 
@@ -163,7 +238,7 @@ export const updateContainer = async (id: number, payload: Partial<Static<typeof
             UPDATE waste_containers 
             SET 
                 name=${payload.name ?? existingContainer.name}, 
-                rating=${payload.rating ?? existingContainer.rating}, 
+                rating=${existingContainer.rating}, 
                 max_kg=${payload.max_kg ?? existingContainer.max_kg}, 
                 max_vol=${payload.max_vol ?? existingContainer.max_vol}, 
                 lat=${payload.lat ?? existingContainer.lat}, 

@@ -13,6 +13,7 @@ export const authenticate = (app: Elysia) =>
                 }
 
                 const { data, error } = await supabase.auth.getUser(accessToken);
+                
 
                 if (error) {
                     throw new ErrorWithStatus(`Your access token is invalid`, 401, 'Unauthenticated');

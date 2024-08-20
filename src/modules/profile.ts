@@ -4,9 +4,9 @@ import { getLeaderboard, getMyAchievement, getMyProfile } from "./handlers/profi
 
 const routes = (app: Elysia) =>
     app
-        .use(authenticate)
         .group('/my', (app) =>
             app
+                .use(authenticate)
                 .get('/',
                     ({ userId }) => getMyProfile(userId))
                 .get('/leaderboard',

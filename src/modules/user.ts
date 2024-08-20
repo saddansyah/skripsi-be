@@ -4,9 +4,9 @@ import { deleteUser, getUserById, getUsers } from "./handlers/userHandler";
 
 const routes = (app: Elysia) =>
     app
-        .use(authenticate)
         .group('/user', (app) =>
             app
+                .use(authenticate)
                 .guard(
                     {
                         beforeHandle({ userId }) {

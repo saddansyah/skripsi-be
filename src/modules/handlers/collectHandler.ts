@@ -10,6 +10,7 @@ import { uploadImage } from "../../services/supabase/utils";
 export const getMyWasteCollects = async (
     userId: string,
     options?: {
+        search?: string,
         page?: number,
         limit?: number,
         status?: string,
@@ -28,8 +29,9 @@ export const getMyWasteCollects = async (
             INNER JOIN waste_containers AS cn ON co.container_id = cn.id
             WHERE
                 co.user_id=${userId}::uuid
-                ${options?.status ? Prisma.sql` AND "status"::text=${options?.status.toUpperCase()} ` : Prisma.empty}
-                ${options?.type ? Prisma.sql` AND "type"::text=${options?.type.toUpperCase()} ` : Prisma.empty}
+                ${options?.search ? Prisma.sql` AND co."id"::text LIKE ${`%${options?.search || ''}%`} ` : Prisma.empty} 
+                ${options?.status ? Prisma.sql` AND co."status"::text=${options?.status.toUpperCase()} ` : Prisma.empty}
+                ${options?.type ? Prisma.sql` AND co."type"::text=${options?.type.toUpperCase()} ` : Prisma.empty}
                 ${options?.container_id ? Prisma.sql` AND "container_id"::int4=${options?.container_id} ` : Prisma.empty}
             ORDER BY ${Prisma.sql([options?.sortBy ?? 'id'])} ${Prisma.sql([options?.order ?? 'asc'])} 
             LIMIT ${limit} OFFSET ${offset};
@@ -105,11 +107,10 @@ export const getMyWasteCollectById = async (
 
 // Set default point to 5
 export const addMyWasteCollect = async (userId: string, point: number, payload: Static<typeof WasteCollectPayloadModel>) => {
-
     try {
         const collect = await db.$queryRaw<WasteCollectType[]>`
             INSERT INTO waste_collects
-            VALUES(
+            VALUES( 
                 DEFAULT,
                 ${payload.kg},
                 ${payload.vol},
@@ -198,7 +199,6 @@ export const deleteMyWasteCollect = async (userId: string, id: number) => {
         if (collect.length == 0)
             throw new ErrorWithStatus(`Collect with id ${collect[0].id} is already deleted`, 404, 'Not Found');
 
-        collect[0].img
 
         // Return JSON when success
         return successResponse<WasteCollectType>(
