@@ -27,3 +27,10 @@ export const QuizLogPayload = t.Object({
     answer: t.String(),
     unique_id: t.String()
 })
+
+export const QuizStatusSchema = t.Object({
+    created_at: t.Date(),
+    next_date: t.Date(),
+})
+
+export type QuizStatusType = Static<typeof QuizStatusSchema>;

@@ -14,7 +14,7 @@ CREATE TYPE "auth"."code_challenge_method" AS ENUM ('s256', 'plain');
 CREATE TYPE "auth"."factor_status" AS ENUM ('unverified', 'verified');
 
 -- CreateEnum
-CREATE TYPE "auth"."factor_type" AS ENUM ('totp', 'webauthn');
+CREATE TYPE "auth"."factor_type" AS ENUM ('totp', 'webauthn', 'phone');
 
 -- CreateEnum
 CREATE TYPE "auth"."one_time_token_type" AS ENUM ('confirmation_token', 'reauthentication_token', 'recovery_token', 'email_change_token_new', 'email_change_token_current', 'phone_change_token');
@@ -57,7 +57,7 @@ CREATE TABLE "auth"."identities" (
     "last_sign_in_at" TIMESTAMPTZ(6),
     "created_at" TIMESTAMPTZ(6),
     "updated_at" TIMESTAMPTZ(6),
-    "email" text GENERATED ALWAYS AS (lower((identity_data ->> 'email'::text))) STORED,
+    "email" TEXT GENERATED ALWAYS AS (lower((identity_data ->> 'email'::text))) STORED,
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
 
     CONSTRAINT "identities_pkey" PRIMARY KEY ("id")
@@ -92,6 +92,7 @@ CREATE TABLE "auth"."mfa_challenges" (
     "created_at" TIMESTAMPTZ(6) NOT NULL,
     "verified_at" TIMESTAMPTZ(6),
     "ip_address" INET NOT NULL,
+    "otp_code" TEXT,
 
     CONSTRAINT "mfa_challenges_pkey" PRIMARY KEY ("id")
 );
@@ -106,6 +107,8 @@ CREATE TABLE "auth"."mfa_factors" (
     "created_at" TIMESTAMPTZ(6) NOT NULL,
     "updated_at" TIMESTAMPTZ(6) NOT NULL,
     "secret" TEXT,
+    "phone" TEXT,
+    "last_challenged_at" TIMESTAMPTZ(6),
 
     CONSTRAINT "mfa_factors_pkey" PRIMARY KEY ("id")
 );
@@ -240,7 +243,7 @@ CREATE TABLE "auth"."users" (
     "phone_change" TEXT DEFAULT '',
     "phone_change_token" VARCHAR(255) DEFAULT '',
     "phone_change_sent_at" TIMESTAMPTZ(6),
-    "confirmed_at" timestamp with time zone GENERATED ALWAYS AS (LEAST(email_confirmed_at, phone_confirmed_at)) STORED,
+    "confirmed_at" TIMESTAMPTZ(6) GENERATED ALWAYS AS (LEAST(email_confirmed_at, phone_confirmed_at)) STORED,
     "email_change_token_current" VARCHAR(255) DEFAULT '',
     "email_change_confirm_status" SMALLINT DEFAULT 0,
     "banned_until" TIMESTAMPTZ(6),
@@ -281,10 +284,19 @@ CREATE UNIQUE INDEX "mfa_amr_claims_session_id_authentication_method_pkey" ON "a
 CREATE INDEX "mfa_challenge_created_at_idx" ON "auth"."mfa_challenges"("created_at" DESC);
 
 -- CreateIndex
+CREATE UNIQUE INDEX "mfa_factors_phone_key" ON "auth"."mfa_factors"("phone");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "mfa_factors_last_challenged_at_key" ON "auth"."mfa_factors"("last_challenged_at");
+
+-- CreateIndex
 CREATE INDEX "factor_id_created_at_idx" ON "auth"."mfa_factors"("user_id", "created_at");
 
 -- CreateIndex
 CREATE INDEX "mfa_factors_user_id_idx" ON "auth"."mfa_factors"("user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "unique_verified_phone_factor" ON "auth"."mfa_factors"("user_id", "phone");
 
 -- CreateIndex
 CREATE INDEX "one_time_tokens_relates_to_hash_idx" ON "auth"."one_time_tokens" USING HASH ("relates_to");

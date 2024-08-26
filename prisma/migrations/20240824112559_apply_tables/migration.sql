@@ -179,6 +179,7 @@ CREATE TABLE "public"."learns" (
     "excerpt" VARCHAR(256) NOT NULL,
     "content" TEXT NOT NULL,
     "img" TEXT NOT NULL,
+    "category" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -216,13 +217,13 @@ ALTER TABLE "public"."quiz_logs" ADD CONSTRAINT "quiz_logs_quiz_id_fkey" FOREIGN
 ALTER TABLE "public"."profiles" ADD CONSTRAINT "profiles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."assigned_achievements" ADD CONSTRAINT "assigned_achievements_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."assigned_achievements" ADD CONSTRAINT "assigned_achievements_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."assigned_achievements" ADD CONSTRAINT "assigned_achievements_achievement_id_fkey" FOREIGN KEY ("achievement_id") REFERENCES "public"."achievements"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."evidence_ratings" ADD CONSTRAINT "evidence_ratings_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "public"."evidence_ratings" ADD CONSTRAINT "evidence_ratings_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."evidence_ratings" ADD CONSTRAINT "evidence_ratings_container_id_fkey" FOREIGN KEY ("container_id") REFERENCES "public"."waste_containers"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -1,5 +1,5 @@
 import db from '../../db/instance';
-import { WasteContainerPayloadModel, WasteContainerType } from '../../models/WasteContainer';
+import { WasteContainerPayloadSchema, WasteContainerType } from '../../models/WasteContainer';
 import { Status } from '../../utils/constants/enums';
 import { successResponse } from '../../utils/responseBuilder';
 import { ErrorWithStatus } from '../../utils/exceptionBuilder';
@@ -103,7 +103,7 @@ export const getPublicContainerById = async (id: number) => {
     try {
         // Database query
         const container = await db.$queryRaw<WasteContainerType[]>`
-        SELECT cn.id, cn.name, cn.lat, cn.long as cluster_name FROM waste_containers as cn 
+        SELECT cn.id, cn.name, cn.lat, cn.long FROM waste_containers as cn 
         WHERE 
             cn.id=${id} AND 
             cn.status='ACCEPTED'
@@ -170,7 +170,7 @@ export const getContainerById = async (id: number, options?: { status: string })
 }
 
 
-export const addContainer = async (userId: string, payload: Static<typeof WasteContainerPayloadModel>) => {
+export const addContainer = async (userId: string, payload: Static<typeof WasteContainerPayloadSchema>) => {
 
     try {
         // Exclude status -> status can be only altered via update, default value is PENDING
@@ -224,7 +224,7 @@ export const addContainer = async (userId: string, payload: Static<typeof WasteC
 }
 
 // Payload set to any to accomate dynamic property changes
-export const updateContainer = async (id: number, payload: Partial<Static<typeof WasteContainerPayloadModel>>) => {
+export const updateContainer = async (id: number, payload: Partial<Static<typeof WasteContainerPayloadSchema>>) => {
     // Override validation error
     if (Object.keys(payload).length == 0) {
         throw new ErrorWithStatus('Body must be not empty', 400, 'Validation Error');

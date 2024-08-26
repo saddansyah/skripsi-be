@@ -4,42 +4,62 @@ import { CONTAINER_POINT } from '../utils/constants/point';
 
 const seed = async () => {
 
-    const user1 = '0be65c73-dc31-4fcb-9fba-6a80e0c0b562';
-    const user2 = 'f032cd98-a6f5-420d-824c-e9b3e9118e24';
-
-    const profiles = [
-        {
-            user: {
-                connect: { id: user1 }
-            },
-            is_admin: true
-        },
-        {
-            user: {
-                connect: { id: user2 }
-            },
-        },
-
-    ] satisfies Prisma.ProfileCreateInput[];
-
-    for (const p of profiles) {
-        await db.profile.create({
-            data: p
-        })
-    };
+    const user1 = '59f18cb8-2889-46cd-b6a0-b9ab179a9517';
+    const user2 = '02f4dcda-9e71-4285-9898-068c062655a3';
 
     const waste_clusters = [
         {
-            name: "Teknik",
+            name: "F. Teknik"
+        },
+        {
+            name: "F. Farmasi",
+        },
+        {
+            name: "FIB"
+        },
+        {
+            name: "F. Hukum"
+        },
+        {
+            name: "FKKMK"
+        },
+        {
+            name: "FKG"
+        },
+        {
+            name: "FKH"
         },
         {
             name: "FEB"
-        }
+        },
+
+        {
+            name: "FMIPA"
+        },
+        {
+            name: "FISIPOL"
+        },
+        {
+            name: "F. Psikologi"
+        },
+        {
+            name: "F. Peternakan"
+        },
+        {
+            name: "FTP"
+        },
+        {
+            name: "F. Pertanian"
+        },
+        {
+            name: "F. Geografi"
+        },
+        {
+            name: "F. Kehutanan"
+        },
     ] satisfies Prisma.WasteClusterCreateInput[]
 
-    const cluster_teknik = await db.wasteCluster.create({
-        data: waste_clusters[0],
-    });
+    const cluster = await Promise.all(waste_clusters.map((r) => db.wasteCluster.create({ data: r })));
 
     // seed container
     const waste_containers = [
@@ -54,7 +74,7 @@ const seed = async () => {
             status: 'ACCEPTED',
             point: CONTAINER_POINT,
             cluster: {
-                connect: { id: cluster_teknik.id }
+                connect: { id: cluster[0].id }
             },
             user: {
                 connect: { id: user1 }
@@ -70,7 +90,7 @@ const seed = async () => {
             long: 110.371049,
             point: CONTAINER_POINT,
             cluster: {
-                connect: { id: cluster_teknik.id }
+                connect: { id: cluster[0].id }
             },
             user: {
                 connect: { id: user1 }
@@ -166,7 +186,6 @@ const seed = async () => {
 
     // Test with promises
     Promise.all(waste_reports.map((r) => db.wasteReport.create({ data: r })));
-
 
     // seed quest
     const quests = [
@@ -428,6 +447,7 @@ const seed = async () => {
     Dengan memilah sampah, kita turut serta dalam menjaga kebersihan dan kelestarian lingkungan.
             `,
             img: 'https://cdn.rri.co.id/berita/Bukittinggi/o/1715099109820-IMG_8799/wc5nmycwdytppuo.jpeg',
+            category: 'Reuse'
         },
         {
             title: 'Mengurangi Penggunaan Plastik Sekali Pakai',
@@ -446,6 +466,7 @@ const seed = async () => {
     Dengan mengurangi penggunaan plastik sekali pakai, kita dapat membantu mengurangi pencemaran plastik di lingkungan kita.
             `,
             img: 'https://cdn.rri.co.id/berita/Bukittinggi/o/1715099109820-IMG_8799/wc5nmycwdytppuo.jpeg',
+            category: 'Reuse'
         },
         {
             title: 'Daur Ulang Sampah Elektronik',
@@ -464,6 +485,7 @@ const seed = async () => {
     Dengan mendaur ulang sampah elektronik, kita dapat membantu mengurangi pencemaran lingkungan dan memanfaatkan kembali bahan-bahan yang ada.
             `,
             img: 'https://cdn.rri.co.id/berita/Bukittinggi/o/1715099109820-IMG_8799/wc5nmycwdytppuo.jpeg',
+            category: 'Reduce'
         }
     ] satisfies Prisma.LearnCreateInput[];
 
@@ -472,6 +494,161 @@ const seed = async () => {
             data: a,
         });
     };
+
+    const flashCards = [
+        {
+            content: "Setiap tahun, sekitar 300 juta ton plastik diproduksi di seluruh dunia, dengan lebih dari 50% di antaranya sekali pakai."
+        },
+        {
+            content: "Diperkirakan lebih dari 8 juta ton plastik masuk ke lautan setiap tahun, mengancam kehidupan laut dan ekosistem."
+        },
+        {
+            content: "Plastik dapat membutuhkan hingga 1.000 tahun untuk terurai secara alami di lingkungan."
+        },
+        {
+            content: "Sekitar 100.000 paus, penyu, dan burung laut mati setiap tahun akibat tertelan atau terjerat plastik."
+        },
+        {
+            content: "Hanya sekitar 9% plastik yang diproduksi yang berhasil didaur ulang secara global."
+        },
+        {
+            content: "Plastik menyumbang sekitar 3,8% dari emisi gas rumah kaca global setiap tahun."
+        },
+        {
+            content: "Pembakaran sampah menghasilkan polutan berbahaya seperti dioksin dan partikel halus yang dapat membahayakan kesehatan manusia."
+        },
+        {
+            content: "Paparan terhadap sampah yang tidak dikelola dengan baik dapat menyebabkan penyakit infeksi dan masalah kesehatan lainnya."
+        },
+        {
+            content: "Setiap tahun, sekitar 50 juta ton limbah elektronik dihasilkan di seluruh dunia, dengan sebagian besar tidak didaur ulang secara benar."
+        },
+        {
+            content: "Sampah plastik dan polusi air menyebabkan kerusakan terumbu karang, yang merupakan habitat penting bagi banyak spesies laut."
+        },
+        {
+            content: "Sampah organik yang terurai di tempat pembuangan akhir menghasilkan metana, gas rumah kaca yang kuat."
+        },
+        {
+            content: "Sekitar 70% air dunia digunakan untuk pertanian, industri, dan kebutuhan domestik, menekankan pentingnya konservasi air."
+        },
+        {
+            content: "Setiap tahun, sekitar 10 juta hektar hutan ditebang, menyebabkan kehilangan habitat dan peningkatan emisi karbon."
+        },
+        {
+            content: "Energi terbarukan seperti matahari dan angin kini mencakup sekitar 29% dari total kapasitas energi dunia."
+        },
+        {
+            content: "Meningkatkan efisiensi energi dapat mengurangi konsumsi energi dan emisi karbon secara signifikan."
+        },
+        {
+            content: "Mengomposkan sampah organik dapat mengurangi volume sampah yang masuk ke tempat pembuangan akhir dan menghasilkan pupuk alami."
+        },
+        {
+            content: "Beberapa perusahaan mengklaim ramah lingkungan tanpa tindakan nyata, yang dikenal sebagai greenwashing."
+        },
+        {
+            content: "Keanekaragaman hayati penting untuk stabilitas ekosistem dan keberlanjutan planet."
+        },
+        {
+            content: "Urbanisasi yang cepat dapat menyebabkan degradasi lingkungan seperti polusi udara dan penurunan kualitas air."
+        },
+        {
+            content: "Hanya sekitar 2,5% air di bumi yang dapat digunakan oleh manusia, dengan sebagian besar tersimpan di es dan es permanen."
+        },
+        {
+            content: "Pemanasan global menyebabkan peningkatan suhu rata-rata bumi, mencairnya es kutub, dan naiknya permukaan laut."
+        },
+        {
+            content: "Menghemat energi melalui penggunaan lampu LED, peralatan hemat energi, dan isolasi bangunan dapat mengurangi konsumsi energi."
+        },
+        {
+            content: "Hutan menyediakan habitat bagi lebih dari 80% spesies darat dan menyimpan sekitar 80% karbon di atmosfer."
+        },
+        {
+            content: "Pertanian berkelanjutan dapat meningkatkan produktivitas tanah, mengurangi erosi, dan menjaga keanekaragaman hayati."
+        },
+        {
+            content: "Polusi air disebabkan oleh limbah industri, pertanian, dan domestik yang mencemari sumber air bersih."
+        },
+        {
+            content: "Erosi tanah dapat menyebabkan degradasi lahan, mengurangi kesuburan tanah, dan menyebabkan sedimentasi di badan air."
+        },
+        {
+            content: "Menggunakan kembali produk dan kemasan dapat mengurangi jumlah sampah yang dihasilkan dan menghemat sumber daya."
+        },
+        {
+            content: "Sekitar sepertiga dari makanan yang diproduksi di dunia hilang atau terbuang, menyebabkan pemborosan sumber daya dan emisi gas rumah kaca."
+        },
+        {
+            content: "Energi nuklir adalah sumber energi rendah karbon yang dapat membantu mengurangi emisi gas rumah kaca, meskipun memiliki tantangan dalam pengelolaan limbah."
+        },
+        {
+            content: "Menggunakan transportasi umum, bersepeda, atau berjalan kaki dapat mengurangi emisi karbon dan polusi udara."
+        },
+        {
+            content: "Pertanian organik menghindari penggunaan pestisida dan bahan kimia sintetis, menjaga kesehatan tanah dan lingkungan."
+        },
+        {
+            content: "Mengurangi penggunaan kertas dan mendaur ulang kertas dapat mengurangi deforestasi dan konsumsi energi."
+        },
+        {
+            content: "Energi matahari adalah sumber energi terbarukan yang melimpah dan ramah lingkungan, mengurangi ketergantungan pada bahan bakar fosil."
+        },
+        {
+            content: "Limbah berbahaya seperti baterai dan bahan kimia harus diolah dengan benar untuk mencegah pencemaran lingkungan."
+        },
+        {
+            content: "Menggunakan baterai yang dapat diisi ulang dan mendaur ulang baterai bekas dapat mengurangi limbah elektronik."
+        },
+        {
+            content: "Teknologi smart grid dapat meningkatkan efisiensi distribusi energi dan mengurangi kehilangan energi."
+        },
+        {
+            content: "Pengelolaan limbah plastik yang baik melibatkan pengurangan penggunaan, pengumpulan, pemilahan, dan daur ulang."
+        },
+        {
+            content: "Penggunaan energi fosil seperti minyak, gas, dan batu bara menyebabkan emisi gas rumah kaca dan polusi udara."
+        },
+        {
+            content: "Pemanasan global dapat meningkatkan risiko penyakit terkait panas, penyebaran penyakit vektor, dan gangguan kesehatan mental."
+        },
+        {
+            content: "Restorasi ekosistem melibatkan upaya memperbaiki dan memulihkan ekosistem yang rusak untuk mendukung keanekaragaman hayati dan fungsi ekologis."
+        },
+        {
+            content: "Kota besar cenderung lebih panas daripada daerah sekitarnya karena aktivitas manusia dan infrastruktur yang padat."
+        },
+        {
+            content: "Menghemat air melalui penggunaan efisien dan teknologi konservasi dapat membantu mengurangi tekanan pada sumber daya air."
+        },
+        {
+            content: "Ekosistem laut mendukung sekitar 50% oksigen bumi dan menyediakan sumber protein bagi miliaran orang."
+        },
+        {
+            content: "Teknologi hijau seperti panel surya, turbin angin, dan kendaraan listrik membantu mengurangi dampak lingkungan dari aktivitas manusia."
+        },
+        {
+            content: "Memilah sampah rumah tangga menjadi organik, anorganik, dan berbahaya dapat meningkatkan efisiensi pengelolaan sampah."
+        },
+        {
+            content: "Plastik mikro, partikel kecil plastik yang sulit diurai, dapat mencemari air dan tanah serta masuk ke rantai makanan."
+        },
+        {
+            content: "Menanam kembali pohon di area yang deforestasi dapat membantu menyerap karbon dioksida, mengembalikan habitat, dan mencegah erosi tanah."
+        },
+        {
+            content: "Menggunakan bahan yang ramah lingkungan seperti bambu, kaca, dan logam daur ulang dapat mengurangi dampak lingkungan dari produksi dan konsumsi."
+        },
+        {
+            content: "Perubahan iklim dapat mempengaruhi ekonomi global melalui dampak pada pertanian, kesehatan, dan infrastruktur."
+        },
+        {
+            content: "Keterlibatan komunitas dalam upaya pelestarian lingkungan seperti bersih-bersih, penanaman pohon, dan edukasi dapat meningkatkan kesadaran dan aksi kolektif."
+        }
+    ] satisfies Prisma.FlashCardCreateInput[];
+
+    Promise.all(flashCards.map((r) => db.flashCard.create({ data: r })));
 }
 
 

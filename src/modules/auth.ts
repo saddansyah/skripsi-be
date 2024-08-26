@@ -19,11 +19,14 @@ const routes = (app: Elysia) =>
                 });
             })
             .post('/signin/google', async ({ body }) => {
+                console.log(body);
                 const { data } = await supabase.auth.signInWithIdToken({
                     provider: 'google',
                     access_token: body.accessToken,
                     token: body.idToken,
                 })
+
+                console.log(data);
 
                 return successResponse({
                     message: 'Sign in success',

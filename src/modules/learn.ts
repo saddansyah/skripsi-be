@@ -6,21 +6,22 @@ const routes = (app: Elysia) =>
     app
         .group('/learn', (app) =>
             app
-                .use(authenticate)
                 .get('/', ({ query }) => getLearns({
+                    search: query?.search,
                     page: query?.page,
                     limit: query?.limit,
                     sortBy: query?.sortBy,
                     order: query?.order,
-                    type: query?.type,
+                    category: query?.category,
                 }),
                     {
                         query: t.Object({
+                            search: t.Optional(t.String()),
                             page: t.Optional(t.Numeric()),
                             limit: t.Optional(t.Numeric()),
                             sortBy: t.Optional(t.String()),
                             order: t.Optional(t.String()),
-                            type: t.Optional(t.String()),
+                            category: t.Optional(t.String()),
                         })
                     }
                 )
@@ -32,6 +33,7 @@ const routes = (app: Elysia) =>
                         })
                     }
                 )
+                .use(authenticate)
                 .guard(
                     {
                         beforeHandle({ userId }) {

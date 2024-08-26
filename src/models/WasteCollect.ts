@@ -1,7 +1,7 @@
 import { t, Static } from 'elysia';
 import { Status, WasteType } from '../utils/constants/enums';
 
-const WasteCollectModel = t.Object({
+const WasteCollectSchema = t.Object({
     id: t.Integer({ error: 'Your id field is missing' }),
     kg: t.Number({ error: 'Your kg field is missing' }),
     vol: t.Number({ error: 'Your vol field is missing' }),
@@ -16,8 +16,15 @@ const WasteCollectModel = t.Object({
     user_id: t.String(),
     container_id: t.Integer(),
 })
-export type WasteCollectType = Static<typeof WasteCollectModel>;
+export type WasteCollectType = Static<typeof WasteCollectSchema>;
 
-export const WasteCollectPayloadModel = t.Omit(
-    WasteCollectModel,
+export const WasteCollectPayloadSchema = t.Omit(
+    WasteCollectSchema,
     ['created_at', 'updated_at', 'status', 'id', 'user_id', 'point'])
+
+export const WasteCollectSummarySchema = t.Object({
+    dailyCollectCount: t.Integer({ error: 'Your collect count field is missing' }),
+    mostCollectType: t.Enum(WasteType, { error: 'Your most collect type field is missing' }),
+});
+
+export type WasteCollectSummaryType = Static<typeof WasteCollectSummarySchema>;

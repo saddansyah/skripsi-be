@@ -1,7 +1,7 @@
 import Elysia, { t } from "elysia";
 import { authenticate, authorize } from "../libs/auth";
 import { addMyWasteCollect, deleteMyWasteCollect, deleteWasteCollect, getMyWasteCollectById, getMyWasteCollects, getWasteCollectById, getWasteCollects, updateMyWasteCollect, updateWasteCollectStatus } from "./handlers/collectHandler";
-import { WasteCollectPayloadModel } from "../models/WasteCollect";
+import { WasteCollectPayloadSchema } from "../models/WasteCollect";
 import { Status } from "../utils/constants/enums";
 import { COLLECT_POINT } from "../utils/constants/point";
 
@@ -48,7 +48,7 @@ const routes = (app: Elysia) =>
                         addMyWasteCollect(userId, COLLECT_POINT, body);
                     },
                     {
-                        body: WasteCollectPayloadModel
+                        body: WasteCollectPayloadSchema
                     }
                 )
                 .patch('/:id',
@@ -57,7 +57,7 @@ const routes = (app: Elysia) =>
                         params: t.Object({
                             id: t.Numeric({ error: 'Param id must be a number' })
                         }),
-                        body: t.Partial(WasteCollectPayloadModel)
+                        body: t.Partial(WasteCollectPayloadSchema)
                     }
                 )
                 .delete('/:id',

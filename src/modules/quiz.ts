@@ -1,7 +1,6 @@
 import Elysia, { t } from "elysia";
 import { authenticate, authorize } from "../libs/auth";
-import { checkAnswerAndAddQuizLog, getQuizById, getRandomQuiz } from "./handlers/quizHandler";
-import { QuizLogPayload } from "../models/Quiz";
+import { checkAnswerAndAddQuizLog, checkQuizStatus, getQuizById, getRandomQuiz } from "./handlers/quizHandler";
 
 const routes = (app: Elysia) =>
     app
@@ -9,15 +8,14 @@ const routes = (app: Elysia) =>
             app
                 .use(authenticate)
                 .get('/', ({ userId }) => getRandomQuiz(userId))
-                .group('/log', (app) =>
-                    app
-                        .post('/',
-                            ({ body, userId }) => checkAnswerAndAddQuizLog(userId, body),
-                            {
-                                body: QuizLogPayload
-                            }
-                        )
-                )
+                .get('/status', ({ userId }) => checkQuizStatus(userId))
+                .post('/', ({ userId, body }) => checkAnswerAndAddQuizLog(userId, body), {
+                    body: t.Object({
+                        answer: t.String(),
+                        unique_id: t.String(),
+                        quiz_id: t.Numeric(),
+                    })
+                })
                 .group('/admin', (app) =>
                     app
                         .guard(

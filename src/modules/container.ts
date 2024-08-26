@@ -9,7 +9,7 @@ import {
     getPublicContainers,
     getPublicContainerById,
 } from "./handlers/containerHandler";
-import { WasteContainerPayloadModel } from "../models/WasteContainer";
+import { WasteContainerPayloadSchema } from "../models/WasteContainer";
 import { Status } from "../utils/constants/enums";
 import { authenticate, authorize } from "../libs/auth";
 
@@ -66,7 +66,7 @@ const routes = (app: Elysia) =>
                 .post('/',
                     ({ body, userId }) => addContainer(userId, body),
                     {
-                        body: WasteContainerPayloadModel
+                        body: WasteContainerPayloadSchema
                     }
                 )
                 .patch('/:id',
@@ -75,7 +75,7 @@ const routes = (app: Elysia) =>
                         params: t.Object({
                             id: t.Numeric({ error: 'Param id must be a number' })
                         }),
-                        body: t.Partial(WasteContainerPayloadModel)
+                        body: t.Partial(WasteContainerPayloadSchema)
                     }
                 )
                 .delete('/:id',

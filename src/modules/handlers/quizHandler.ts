@@ -1,5 +1,5 @@
 import { Prisma, Quiz } from "@prisma/client";
-import { QuizLogPayload, QuizLogType, QuizType } from "../../models/Quiz";
+import { QuizLogPayload, QuizLogType, QuizStatusType, QuizType } from "../../models/Quiz";
 import { successResponse } from "../../utils/responseBuilder";
 import { ErrorWithStatus } from "../../utils/exceptionBuilder";
 import db from "../../db/instance";
@@ -67,6 +67,43 @@ export const getQuizById = async (id: number) => {
 
 // Quiz Log
 
+// To check user shouldn't answer the quiz within 24 hours
+export const checkQuizStatus = async (userId: string) => {
+    try {
+        const quiz = await db.$queryRaw<QuizStatusType[]>`
+            with latest_quiz_log as (
+                select created_at from quiz_logs 
+                where user_id = '02f4dcda-9e71-4285-9898-068c062655a3'
+                order by created_at desc 
+                limit 1
+            ),
+            result as (
+                select l.created_at, l.created_at + INTERVAL '1 day' AS next_date from latest_quiz_log as l
+            )
+            select * from result;
+        `
+
+        if (quiz.length == 0) {
+            throw new ErrorWithStatus('Quiz is not found', 404);
+        }
+
+        return successResponse<QuizStatusType>(
+            {
+                message: "Your quiz is ready",
+                data: quiz
+            }
+        )
+    }
+    catch (e: any) {
+        switch (e.constructor) {
+            case Prisma.PrismaClientKnownRequestError:
+                throw new ErrorWithStatus(e.message, 500);
+            default:
+                throw new ErrorWithStatus(e.message, e.status, e.name);
+        }
+    }
+}
+
 export const checkAnswerAndAddQuizLog = async (userId: string, payload: Static<typeof QuizLogPayload>) => {
     try {
 
@@ -80,8 +117,17 @@ export const checkAnswerAndAddQuizLog = async (userId: string, payload: Static<t
             WHERE id=${payload.quiz_id} 
             LIMIT 1
         `
-        if (validAnswer[0].answer !== payload.answer)
-            throw new ErrorWithStatus('Your answer is incorrect. Try Again.', 400, 'Bad Request')
+
+        if (validAnswer[0].answer !== payload.answer) {
+            console.log('Answer is wrong');
+
+            return successResponse<QuizLogType>(
+                {
+                    message: `Jawaban kamu salah. Coba lagi.`,
+                    data: []
+                }
+            );
+        }
 
 
         const quizLog = await db.$queryRaw<QuizLogType[]>`
@@ -99,7 +145,7 @@ export const checkAnswerAndAddQuizLog = async (userId: string, payload: Static<t
 
         return successResponse<QuizLogType>(
             {
-                message: `You got ${quizLog[0].point!} point. Your progress will be recorded in our system`,
+                message: `Kamu mendapat ${quizLog[0].point!} poin. Progres quiz kamu akan tercatat di sistem.`,
                 data: quizLog
             }
         )

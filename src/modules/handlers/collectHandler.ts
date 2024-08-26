@@ -2,10 +2,17 @@ import { Prisma } from "@prisma/client";
 import { Static, t } from 'elysia'
 import { ErrorWithStatus } from "../../utils/exceptionBuilder";
 import db from "../../db/instance";
-import { WasteCollectPayloadModel, WasteCollectType } from "../../models/WasteCollect";
+import { WasteCollectPayloadSchema, WasteCollectSummaryType, WasteCollectType } from "../../models/WasteCollect";
 import { successResponse } from "../../utils/responseBuilder";
 import { Status } from "../../utils/constants/enums";
-import { uploadImage } from "../../services/supabase/utils";
+
+export const getMyCollectSummary = async (userId: string) => {
+    // try {
+    //     const summary = await db.$transaction([
+    //         db.$queryRaw<WasteCollectSummaryType>``
+    //     ])
+    // }
+}
 
 export const getMyWasteCollects = async (
     userId: string,
@@ -106,7 +113,7 @@ export const getMyWasteCollectById = async (
 }
 
 // Set default point to 5
-export const addMyWasteCollect = async (userId: string, point: number, payload: Static<typeof WasteCollectPayloadModel>) => {
+export const addMyWasteCollect = async (userId: string, point: number, payload: Static<typeof WasteCollectPayloadSchema>) => {
     try {
         const collect = await db.$queryRaw<WasteCollectType[]>`
             INSERT INTO waste_collects
@@ -147,7 +154,7 @@ export const addMyWasteCollect = async (userId: string, point: number, payload: 
     }
 }
 
-export const updateMyWasteCollect = async (userId: string, id: number, payload: Partial<Static<typeof WasteCollectPayloadModel>>) => {
+export const updateMyWasteCollect = async (userId: string, id: number, payload: Partial<Static<typeof WasteCollectPayloadSchema>>) => {
     try {
         const existingCollect = (await db.$queryRaw<WasteCollectType[]>`SELECT * FROM waste_collects WHERE id=${id} LIMIT 1`)[0];
 

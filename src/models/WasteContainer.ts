@@ -1,7 +1,7 @@
 import { t, Static } from 'elysia';
 import { ContainerType, Status } from '../utils/constants/enums';
 
-const WasteContainerModel = t.Object({
+const WasteContainerSchema = t.Object({
     id: t.Integer(),
     name: t.String({
         maxLength: 100,
@@ -21,11 +21,11 @@ const WasteContainerModel = t.Object({
     updated_at: t.Date()
 })
 
-export const WasteContainerPayloadModel = t.Omit(
-    WasteContainerModel,
+export const WasteContainerPayloadSchema = t.Omit(
+    WasteContainerSchema,
     ['id', 'created_at', 'updated_at', 'status', 'user_id', 'point', 'rating']
 )
-export type WasteContainerType = Static<typeof WasteContainerModel>;
+export type WasteContainerType = Static<typeof WasteContainerSchema>;
 
 
 

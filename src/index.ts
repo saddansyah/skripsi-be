@@ -2,6 +2,7 @@ import { Elysia, t } from "elysia";
 import { cors } from '@elysiajs/cors'
 
 // Modules
+import flashcard from "./modules/flashcard";
 import learn from "./modules/learn";
 import container from "./modules/container";
 import cluster from "./modules/cluster";
@@ -37,13 +38,13 @@ const app = new Elysia()
         return errorResponse({ status: 500, error: "Internal Server Error", message: ctx.error.message });
     }
   })
-  .use(cors())
+  .use(cors({ allowedHeaders: ['ngrok-skip-browser-warning'] }))
   .get("/", () => { return { hello: 'world!' } })
   .group('/api', (app) =>
     app
       .use(auth)
+      .use(flashcard)
       // authenticated routes
-      .use(authenticate)
       .use(container)
       .use(storage)
       .use(profile)

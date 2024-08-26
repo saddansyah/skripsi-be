@@ -6,11 +6,12 @@ import db from "../../db/instance";
 
 export const getLearns = async (
     options?: {
+        search?: string,
         page?: number,
         limit?: number
         sortBy?: string,
         order?: string,
-        type?: string
+        category?: string
     }) => {
 
     try {
@@ -18,9 +19,10 @@ export const getLearns = async (
         const offset = ((options?.page ?? 1) - 1) * (limit);
 
         const learns = await db.$queryRaw<LearnType[]>`
-            SELECT * FROM learns
-            ${options?.type ? Prisma.sql` WHERE "type"::text=${options?.type.toUpperCase()} ` : Prisma.empty}
-            ORDER BY ${Prisma.sql([options?.sortBy ?? 'created_at'])} ${Prisma.sql([options?.order ?? 'asc'])} 
+            SELECT * FROM learns 
+            WHERE "title"::text LIKE ${`%${options?.search || ''}%`} 
+            ${options?.category ? Prisma.sql` AND "category"::text=${options?.category} ` : Prisma.empty}
+            ORDER BY ${Prisma.sql([options?.sortBy ?? 'created_at'])} ${Prisma.sql([options?.order ?? 'desc'])} 
             LIMIT ${limit} OFFSET ${offset};
         `;
 

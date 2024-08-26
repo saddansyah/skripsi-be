@@ -6,7 +6,7 @@ import { AssignedAchievementType } from "../../models/Achievement";
 import { ProfileSchema, ProfileType } from "../../models/Profile";
 import { ErrorWithStatus } from "../../utils/exceptionBuilder";
 import { successResponse } from "../../utils/responseBuilder";
-import { getRankByPoint } from "../../utils/constants/ranks";
+import { getNextRank, getRankByPoint } from "../../utils/constants/ranks";
 
 export const getMyProfile = async (userId: string) => {
     try {
@@ -33,12 +33,15 @@ export const getMyProfile = async (userId: string) => {
         `;
 
         const rank = getRankByPoint(profile[0].total_points);
+        const nextRank = getNextRank(rank);
+        const nextPoint = nextRank.sum_point - profile[0].total_points;
+        console.log(nextPoint);
 
         // Return JSON when success
         return successResponse<ProfileType>(
             {
                 message: "Your profile is ready",
-                data: [{ ...profile[0], rank: rank?.title ?? 'Environmental Noobie' }]
+                data: [{ ...profile[0], rank: rank?.title ?? 'Environmental Noobie', next_rank: nextRank?.title, next_point: nextPoint < 0 ? 0 : nextPoint }]
             }
         )
     }
@@ -58,23 +61,30 @@ export const getLeaderboard = async (options?: { limit?: number }) => {
         const limit = options?.limit ?? 10;
 
         const leaderboard = await db.$queryRaw<Partial<Static<typeof ProfileSchema>>[]>`
-            SELECT u.id, u.raw_user_meta_data, SUM(f.point)::int4 AS total_points
-                FROM auth.users AS u 
-                INNER JOIN (
-                    SELECT user_id, point FROM waste_collects
-                    UNION ALL
-                    SELECT user_id, point FROM waste_reports
-                    UNION ALL
-                    SELECT user_id, point FROM quiz_logs
-                    UNION ALL
-                    SELECT user_id, point FROM quests_logs
-                    UNION ALL 
-                    SELECT user_id, additional_point as point FROM profiles
-                ) as f on u.id = f.user_id
-            GROUP BY
-                u.id
-            ORDER BY total_points DESC
-            LIMIT ${limit};
+            with users_with_point as ( 
+                SELECT u.id, u.raw_user_meta_data -> 'name' as name, u.raw_user_meta_data -> 'avatar_url' as img, SUM(f.point)::int4 AS total_point
+                            FROM auth.users AS u 
+                            INNER JOIN (
+                                SELECT user_id, point FROM waste_collects
+                                UNION ALL
+                                SELECT user_id, point FROM waste_reports
+                                UNION ALL
+                                SELECT user_id, point FROM quiz_logs
+                                UNION ALL
+                                SELECT user_id, point FROM quests_logs
+                                UNION ALL 
+                                SELECT user_id, additional_point as point FROM profiles
+                            ) as f on u.id = f.user_id
+                        GROUP BY
+                            u.id
+                        ORDER BY total_point DESC
+                ),
+            top_users as (select * from users_with_point limit ${limit}),
+            me as (select * from users_with_point where id='2d673685-f65b-49c6-90b3-901bcddbf966'),
+            result as (select * from top_users union all select * from me WHERE me.id NOT IN (SELECT id FROM top_users))
+
+            select * from result
+            order by total_point desc;
         `;
 
         // Return JSON when success
@@ -97,19 +107,30 @@ export const getLeaderboard = async (options?: { limit?: number }) => {
 
 export const getMyAchievement = async (userId: string) => {
     try {
-        const achievement = await db.$queryRaw<AssignedAchievementType[]>`
-            SELECT a.id, a.name, a.description, a.img 
-            FROM assigned_achievements
-                FULL OUTER JOIN auth.users AS u ON assigned_achievements.user_id = u.id 
-                FULL OUTER JOIN achievements AS a ON assigned_achievements.achievement_id = a.id 
-            WHERE u.id = ${userId}::uuid;
+        const achievements = await db.$queryRaw<AssignedAchievementType[]>`
+            SELECT a.id, a.name, a.description, a.img, aa.created_at
+            FROM assigned_achievements as aa 
+                INNER JOIN auth.users AS u ON aa.user_id = u.id 
+                INNER JOIN achievements AS a ON aa.achievement_id = a.id 
+                WHERE u.id = ${userId}::uuid
+            ORDER BY aa.created_at desc
+            ;
         `;
+
+        if (achievements.length == 0) {
+            return successResponse<AssignedAchievementType>(
+                {
+                    message: "No achievement(s) are collected",
+                    data: achievements
+                }
+            )
+        }
 
         // Return JSON when success
         return successResponse<AssignedAchievementType>(
             {
                 message: "Your achievement is ready",
-                data: achievement
+                data: achievements
             }
         )
     }
