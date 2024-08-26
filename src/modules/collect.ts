@@ -1,6 +1,6 @@
 import Elysia, { t } from "elysia";
 import { authenticate, authorize } from "../libs/auth";
-import { addMyWasteCollect, deleteMyWasteCollect, deleteWasteCollect, getMyWasteCollectById, getMyWasteCollects, getWasteCollectById, getWasteCollects, updateMyWasteCollect, updateWasteCollectStatus } from "./handlers/collectHandler";
+import { addMyWasteCollect, deleteMyWasteCollect, deleteWasteCollect, getMyCollectSummary, getMyWasteCollectById, getMyWasteCollects, getWasteCollectById, getWasteCollects, updateMyWasteCollect, updateWasteCollectStatus } from "./handlers/collectHandler";
 import { WasteCollectPayloadSchema } from "../models/WasteCollect";
 import { Status } from "../utils/constants/enums";
 import { COLLECT_POINT } from "../utils/constants/point";
@@ -9,6 +9,7 @@ const routes = (app: Elysia) =>
     app
         .group('/collect', (app) =>
             app
+                .get('/summary', () => getMyCollectSummary('userId'))
                 .use(authenticate)
                 .get('/', ({ query, userId }) => getMyWasteCollects(userId, {
                     search: query?.search,

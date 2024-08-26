@@ -7,11 +7,55 @@ import { successResponse } from "../../utils/responseBuilder";
 import { Status } from "../../utils/constants/enums";
 
 export const getMyCollectSummary = async (userId: string) => {
-    // try {
-    //     const summary = await db.$transaction([
-    //         db.$queryRaw<WasteCollectSummaryType>``
-    //     ])
-    // }
+    try {
+        const [count, type] = await db.$transaction([
+            db.$queryRaw<Pick<WasteCollectSummaryType, 'daily_collect_count'>[]>`
+                SELECT COUNT(*) as daily_collect_count FROM waste_collects AS co 
+                WHERE 
+                    -- user_id=${userId}::uuid  
+                    user_id='59f18cb8-2889-46cd-b6a0-b9ab179a9517'
+                    AND co.created_at >= now() - INTERVAL '1 day'
+                GROUP BY co.user_id;
+            `,
+            db.$queryRaw<Pick<WasteCollectSummaryType, 'most_collect_type'>[]>`
+                SELECT co.type as most_collect_type, COUNT(co.type) AS amount FROM waste_collects as co 
+                -- WHERE user_id=${userId}::uuid
+                WHERE user_id='59f18cb8-2889-46cd-b6a0-b9ab179a9517'
+                GROUP BY co.type
+                ORDER BY amount DESC
+                LIMIT 1;
+            `
+        ]);
+
+        if (type.length == 0 || count.length == 0) {
+            return successResponse<WasteCollectSummaryType>(
+                {
+                    message: "Your summary is empty",
+                    data: []
+                }
+            )
+        }
+
+
+        // Return JSON when success
+        return successResponse<WasteCollectSummaryType>(
+            {
+                message: "Your waste collects is ready",
+                data: [{
+                    daily_collect_count: Number((count[0].daily_collect_count as BigInt).toString()),
+                    most_collect_type: type[0].most_collect_type,
+                }]
+            }
+        )
+    }
+    catch (e: any) {
+        switch (e.constructor) {
+            case Prisma.PrismaClientKnownRequestError:
+                throw new ErrorWithStatus(e.message, 500);
+            default:
+                throw new ErrorWithStatus(e.message, e.status, e.name);
+        }
+    }
 }
 
 export const getMyWasteCollects = async (
