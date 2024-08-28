@@ -73,7 +73,7 @@ export const checkQuizStatus = async (userId: string) => {
         const quiz = await db.$queryRaw<QuizStatusType[]>`
             with latest_quiz_log as (
                 select created_at from quiz_logs 
-                where user_id = '02f4dcda-9e71-4285-9898-068c062655a3'
+                where user_id=${userId}::uuid
                 order by created_at desc 
                 limit 1
             ),

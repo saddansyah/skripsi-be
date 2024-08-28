@@ -28,5 +28,16 @@ export const WasteContainerPayloadSchema = t.Omit(
 export type WasteContainerType = Static<typeof WasteContainerSchema>;
 
 
+const WasteContainerInMapSchema = t.Object({
+    id: t.Integer(),
+    name: t.String({
+        maxLength: 100,
+        error: 'Your name field is missing'
+    }),
+    distance: t.Numeric()
+})
+
+export type WasteContainerInMapType = Static<typeof WasteContainerInMapSchema>;
+
 
 

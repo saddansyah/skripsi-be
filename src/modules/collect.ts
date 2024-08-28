@@ -9,8 +9,8 @@ const routes = (app: Elysia) =>
     app
         .group('/collect', (app) =>
             app
-                .get('/summary', () => getMyCollectSummary('userId'))
                 .use(authenticate)
+                .get('/summary', ({ userId }) => getMyCollectSummary(userId))
                 .get('/', ({ query, userId }) => getMyWasteCollects(userId, {
                     search: query?.search,
                     page: query?.page,

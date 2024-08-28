@@ -18,7 +18,6 @@ import storage from "./modules/storage";
 // Utilities
 import { errorResponse } from "./utils/responseBuilder";
 import { ErrorWithStatus } from "./utils/exceptionBuilder";
-import { authenticate } from "./libs/auth";
 import { logger } from "./libs/logger";
 
 const app = new Elysia()
@@ -54,11 +53,11 @@ const app = new Elysia()
       .use(user)
       .use(learn)
       .use(quiz)
+      // TODO ->
       .use(quest)
       .get("/", () => { return { hello: 'api ' } })
   )
   .listen(process.env.APP_PORT ?? 8080);
-// .listen({ port: 80, hostname: '192.168.223.131' });
 
 console.log(
   `Server is running at ${app.server?.hostname}:${app.server?.port} on ${process.env.NODE_ENV} mode`

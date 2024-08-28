@@ -1,5 +1,5 @@
 import db from '../../db/instance';
-import { WasteContainerPayloadSchema, WasteContainerType } from '../../models/WasteContainer';
+import { WasteContainerInMapType, WasteContainerPayloadSchema, WasteContainerType } from '../../models/WasteContainer';
 import { Status } from '../../utils/constants/enums';
 import { successResponse } from '../../utils/responseBuilder';
 import { ErrorWithStatus } from '../../utils/exceptionBuilder';
@@ -61,7 +61,7 @@ export const getContainers = async (
 
         // Database querys
         const containers = await db.$queryRaw<WasteContainerType[]>`
-            SELECT cn.id, cn.name, cn.type, cn.rating, cn.lat, cn.long, cn.status, cn.user_id, cl.id as cluster_id, cl.name as cluster_name FROM waste_containers as cn
+            SELECT cn.id, cn.name, cn.type, cn.rating, cn.lat, cn.long, cn.point, cn.status, cn.user_id, cl.id as cluster_id, cl.name as cluster_name FROM waste_containers as cn
             INNER JOIN waste_clusters as cl ON cn.cluster_id = cl.id
                 ${options?.search ? Prisma.sql` WHERE cn."name"::text LIKE ${`%${options?.search || ''}%`} ` : Prisma.empty} 
                 ${options?.status ? Prisma.sql` AND "status"::text=${options?.status.toUpperCase()} ` : Prisma.empty}
@@ -153,6 +153,45 @@ export const getContainerById = async (id: number, options?: { status: string })
 
         // Return JSON when success
         return successResponse<WasteContainerType>(
+            {
+                message: "Container is ready",
+                data: container
+            }
+        )
+    }
+    catch (e: any) {
+        switch (e.constructor) {
+            case Prisma.PrismaClientKnownRequestError:
+                throw new ErrorWithStatus(e.message, 500);
+            default:
+                throw new ErrorWithStatus(e.message, e.status, e.name);
+        }
+    }
+}
+
+export const getNearestContainer = async (lat: number, long: number, limit?: number) => {
+    try {
+        // Database query
+        const container = await db.$queryRaw<WasteContainerInMapType[]>`
+            SELECT 
+            cn.id, 
+            cn.name, 
+            acos(sin(radians(cn.lat))*sin(radians(${lat}))+cos(radians(cn.lat))*cos(radians(${lat}))*cos(radians(${long})-radians(cn.long)))*6371 as distance, 
+            cn.lat,
+            cn.long 
+            FROM waste_containers AS cn
+            WHERE cn.status='ACCEPTED' 
+            ORDER BY distance ASC
+            LIMIT ${limit ?? 1};
+        `;
+
+        // Messages is empty when empty
+        if (container.length == 0) {
+            throw new ErrorWithStatus('Container is not found', 404);
+        }
+
+        // Return JSON when success
+        return successResponse<WasteContainerInMapType>(
             {
                 message: "Container is ready",
                 data: container

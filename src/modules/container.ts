@@ -8,6 +8,7 @@ import {
     updateContainerStatus,
     getPublicContainers,
     getPublicContainerById,
+    getNearestContainer,
 } from "./handlers/containerHandler";
 import { WasteContainerPayloadSchema } from "../models/WasteContainer";
 import { Status } from "../utils/constants/enums";
@@ -22,6 +23,14 @@ const routes = (app: Elysia) =>
                         .get('/',
                             () => getPublicContainers()
                         )
+                        .get('/nearest',
+                            ({ query }) => getNearestContainer(query.lat, query.long, query.limit), {
+                            query: t.Object({
+                                lat: t.Numeric(),
+                                long: t.Numeric(),
+                                limit: t.Optional(t.Numeric())
+                            })
+                        })
                         .get('/:id',
                             ({ params }) => getPublicContainerById(params.id),
                             {

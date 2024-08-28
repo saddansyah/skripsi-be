@@ -24,7 +24,7 @@ export const WasteCollectPayloadSchema = t.Omit(
 
 export const WasteCollectSummarySchema = t.Object({
     daily_collect_count: t.Union([t.Integer(), t.BigInt()], { error: 'Your collect count field is missing' }),
-    most_collect_type: t.Enum(WasteType, { error: 'Your most collect type field is missing' }),
+    most_collect_type: t.Nullable(t.Enum(WasteType, { error: 'Your most collect type field is missing' })),
 });
 
 export type WasteCollectSummaryType = Static<typeof WasteCollectSummarySchema>;
