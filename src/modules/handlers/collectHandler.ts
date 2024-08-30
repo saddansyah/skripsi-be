@@ -4,7 +4,8 @@ import { ErrorWithStatus } from "../../utils/exceptionBuilder";
 import db from "../../db/instance";
 import { WasteCollectPayloadSchema, WasteCollectSummaryType, WasteCollectType } from "../../models/WasteCollect";
 import { successResponse } from "../../utils/responseBuilder";
-import { Status, WasteType } from "../../utils/constants/enums";
+import { Status } from "../../utils/constants/enums";
+import * as achievement from "../../utils/achievement";
 
 export const getMyCollectSummary = async (userId: string) => {
     try {
@@ -76,6 +77,7 @@ export const getMyWasteCollects = async (
             ORDER BY ${Prisma.sql([options?.sortBy ?? 'id'])} ${Prisma.sql([options?.order ?? 'asc'])} 
             LIMIT ${limit} OFFSET ${offset};
             `;
+
 
         if (collects.length == 0) {
             return successResponse<WasteCollectType>(
@@ -168,7 +170,8 @@ export const addMyWasteCollect = async (userId: string, point: number, payload: 
             RETURNING *;
         `;
 
-        // TODO(Event) -> send point notification to user
+        // Achievement Evaluator -> New Comer (id: 1)
+        achievement.evaluate(userId, 1);
 
         return successResponse<WasteCollectType>(
             {

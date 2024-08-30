@@ -10,7 +10,7 @@ const routes = (app: Elysia) =>
                 .get('/',
                     ({ userId }) => getMyProfile(userId))
                 .get('/leaderboard',
-                    ({ query }) => getLeaderboard({ limit: query?.limit }),
+                    ({ query, userId }) => getLeaderboard(userId, { limit: query?.limit }),
                     {
                         query: t.Object({
                             limit: t.Optional(t.Numeric())

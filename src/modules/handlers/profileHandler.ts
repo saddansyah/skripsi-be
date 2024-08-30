@@ -23,7 +23,7 @@ export const getMyProfile = async (userId: string) => {
                     UNION ALL
                     SELECT user_id, point FROM quests_logs WHERE user_id=${userId}::uuid
                     UNION ALL 
-                    SELECT user_id, additional_point as point FROM profiles WHERE user_id=${userId}::uuid
+                    SELECT user_id, point FROM waste_containers WHERE user_id=${userId}::uuid AND status='ACCEPTED'
                 ) f on u.id = f.user_id
             WHERE u.id = ${userId}::uuid 
             GROUP BY 
@@ -56,7 +56,7 @@ export const getMyProfile = async (userId: string) => {
 }
 
 // The point must be cached in frontend to compare the result
-export const getLeaderboard = async (options?: { limit?: number }) => {
+export const getLeaderboard = async (userId: string, options?: { limit?: number }) => {
     try {
         const limit = options?.limit ?? 10;
 
@@ -65,22 +65,22 @@ export const getLeaderboard = async (options?: { limit?: number }) => {
                 SELECT u.id, u.raw_user_meta_data -> 'name' as name, u.raw_user_meta_data -> 'avatar_url' as img, SUM(f.point)::int4 AS total_point
                             FROM auth.users AS u 
                             INNER JOIN (
-                                SELECT user_id, point FROM waste_collects
+                                SELECT user_id, point FROM waste_collects WHERE status='ACCEPTED'
                                 UNION ALL
-                                SELECT user_id, point FROM waste_reports
+                                SELECT user_id, point FROM waste_reports WHERE status='ACCEPTED'
                                 UNION ALL
                                 SELECT user_id, point FROM quiz_logs
                                 UNION ALL
                                 SELECT user_id, point FROM quests_logs
                                 UNION ALL 
-                                SELECT user_id, additional_point as point FROM profiles
+                                SELECT user_id, point FROM waste_containers WHERE status='ACCEPTED'
                             ) as f on u.id = f.user_id
                         GROUP BY
                             u.id
                         ORDER BY total_point DESC
                 ),
             top_users as (select * from users_with_point limit ${limit}),
-            me as (select * from users_with_point where id='2d673685-f65b-49c6-90b3-901bcddbf966'),
+            me as (select * from users_with_point where id=${userId}::uuid),
             result as (select * from top_users union all select * from me WHERE me.id NOT IN (SELECT id FROM top_users))
 
             select * from result

@@ -18,3 +18,9 @@ export const AssignedAchievementSchema = t.Omit(
 )
 
 export type AssignedAchievementType = Static<typeof AssignedAchievementSchema>;
+
+export const ShouldAwardSchema = t.Object({
+    should_award: t.Boolean()
+})
+
+export type ShouldAwardType = Static<typeof ShouldAwardSchema>;

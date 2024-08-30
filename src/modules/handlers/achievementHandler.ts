@@ -54,7 +54,7 @@ export const getAchievementById = async (id: number) => {
 
         const achievement = await db.$queryRaw<AchievementType[]>`
             SELECT * FROM achievements
-            WHERE id={id}
+            WHERE id=${id}
             LIMIT 1;
         `
 

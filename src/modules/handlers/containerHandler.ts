@@ -6,14 +6,18 @@ import { ErrorWithStatus } from '../../utils/exceptionBuilder';
 import { Prisma } from '@prisma/client';
 import { Static } from 'elysia';
 import { CONTAINER_POINT } from '../../utils/constants/point';
+import * as achievement from '../../utils/achievement';
 
 export const getPublicContainers = async () => {
     try {
         // Database query
         const containers = await db.$queryRaw<WasteContainerType[]>`
-        SELECT cn.id, cn.name, cn.lat, cn.long FROM waste_containers as cn 
+        SELECT cn.id, cn.name, cn.lat, cn.long, CASE WHEN AVG(er.value)::float >= 0 THEN AVG(er.value)::float ELSE 0::float END AS rating, COUNT(er.value)::int as rating_count
+        FROM waste_containers as cn 
+        LEFT JOIN evidence_ratings as er ON er.container_id = cn.id
         WHERE 
             cn.status='ACCEPTED'
+        GROUP BY cn.id
         `;
 
         // Messages is empty when empty
@@ -61,12 +65,14 @@ export const getContainers = async (
 
         // Database querys
         const containers = await db.$queryRaw<WasteContainerType[]>`
-            SELECT cn.id, cn.name, cn.type, cn.rating, cn.lat, cn.long, cn.point, cn.status, cn.user_id, cl.id as cluster_id, cl.name as cluster_name FROM waste_containers as cn
+            SELECT cn.id, cn.name, cn.type, CASE WHEN AVG(er.value)::float >= 0 THEN AVG(er.value)::float ELSE 0::float END AS rating, COUNT(er.value)::int as rating_count, cn.lat, cn.long, cn.point, cn.status, cn.user_id, cl.id as cluster_id, cl.name as cluster_name FROM waste_containers as cn
+            LEFT JOIN evidence_ratings AS er ON er.container_id = cn.id
             INNER JOIN waste_clusters as cl ON cn.cluster_id = cl.id
                 ${options?.search ? Prisma.sql` WHERE cn."name"::text LIKE ${`%${options?.search || ''}%`} ` : Prisma.empty} 
                 ${options?.status ? Prisma.sql` AND "status"::text=${options?.status.toUpperCase()} ` : Prisma.empty}
                 ${options?.type ? Prisma.sql` AND "type"::text=${options?.type.toUpperCase()} ` : Prisma.empty} 
                 ${options?.cluster_id ? Prisma.sql` AND "cluster_id"::int4=${options?.cluster_id} ` : Prisma.empty} 
+            GROUP BY cn.id, cl.id
             ORDER BY ${Prisma.sql([options?.sortBy ? `cn.${options?.sortBy}` : `cn.name`])} ${Prisma.sql([options?.order ?? 'asc'])} 
             LIMIT ${limit} OFFSET ${offset};
         `;
@@ -103,10 +109,12 @@ export const getPublicContainerById = async (id: number) => {
     try {
         // Database query
         const container = await db.$queryRaw<WasteContainerType[]>`
-        SELECT cn.id, cn.name, cn.lat, cn.long FROM waste_containers as cn 
+        SELECT cn.id, cn.name, cn.lat, cn.long, CASE WHEN AVG(er.value)::float >= 0 THEN AVG(er.value)::float ELSE 0::float END AS rating, COUNT(er.value)::int as rating_count FROM waste_containers as cn 
+        LEFT JOIN evidence_ratings AS er ON er.container_id=cn.id
         WHERE 
             cn.id=${id} AND 
             cn.status='ACCEPTED'
+        GROUP BY cn.id 
         LIMIT 1;
         `;
 
@@ -138,11 +146,30 @@ export const getContainerById = async (id: number, options?: { status: string })
     try {
         // Database query
         const container = await db.$queryRaw<WasteContainerType[]>`
-        SELECT cn.*, cl.name as cluster_name FROM waste_containers as cn
+        SELECT 
+            cn.id,
+            cn.name,
+            cn.type,
+            CASE WHEN AVG(er.value)::float >= 0 THEN AVG(er.value)::float ELSE 0::float END AS rating,
+            COUNT(er.value)::int as rating_count, 
+            cn.max_kg,
+            cn.max_vol,
+            cn.lat,
+            cn.long,
+            cn.status,
+            cn.point,
+            cn.created_at,
+            cn.updated_at,
+            cn.cluster_id,
+            cn.user_id, 
+            cl.name as cluster_name 
+        FROM waste_containers as cn
+        LEFT JOIN evidence_ratings AS er ON er.container_id = cn.id 
         INNER JOIN waste_clusters as cl ON cn.cluster_id = cl.id 
         WHERE 
             cn.id=${id}
             ${options?.status ? Prisma.sql` AND "cn.status"::text=${options?.status.toUpperCase()} ` : Prisma.empty}
+        GROUP BY cn.id, cl.id
         LIMIT 1;
         `;
 
@@ -176,11 +203,15 @@ export const getNearestContainer = async (lat: number, long: number, limit?: num
             SELECT 
             cn.id, 
             cn.name, 
+            CASE WHEN AVG(er.value)::float >= 0 THEN AVG(er.value)::float ELSE 0::float END AS rating, 
+            COUNT(er.value)::int as rating_count, 
             acos(sin(radians(cn.lat))*sin(radians(${lat}))+cos(radians(cn.lat))*cos(radians(${lat}))*cos(radians(${long})-radians(cn.long)))*6371 as distance, 
             cn.lat,
             cn.long 
             FROM waste_containers AS cn
+            LEFT JOIN evidence_ratings AS er ON er.container_id = cn.id
             WHERE cn.status='ACCEPTED' 
+            GROUP BY cn.id 
             ORDER BY distance ASC
             LIMIT ${limit ?? 1};
         `;
@@ -213,36 +244,29 @@ export const addContainer = async (userId: string, payload: Static<typeof WasteC
 
     try {
         // Exclude status -> status can be only altered via update, default value is PENDING
-        const [container, _] = await db.$transaction([
-            db.$queryRaw<WasteContainerType[]>`
-                INSERT INTO waste_containers 
-                VALUES(
-                    DEFAULT, 
-                    ${payload.name}, 
-                    ${payload.type}::"ContainerType",
-                    0, 
-                    ${payload.max_kg}, 
-                    ${payload.max_vol}, 
-                    ${payload.lat}, 
-                    ${payload.long},
-                    DEFAULT,
-                    ${CONTAINER_POINT},
-                    now(), 
-                    now(), 
-                    ${payload.cluster_id},
-                    ${userId}::uuid
-                )
-                RETURNING *;
-            `
-            ,
-            db.$queryRaw`
-                UPDATE profiles 
-                SET additional_point=additional_point+${CONTAINER_POINT} 
-                WHERE user_id=${userId}::uuid;
-            `
-        ])
+        const container = await db.$queryRaw<WasteContainerType[]>`
+            INSERT INTO waste_containers 
+            VALUES(
+                DEFAULT, 
+                ${payload.name}, 
+                ${payload.type}::"ContainerType",
+                0, -- Overidden by collect aggregation
+                ${payload.max_kg}, 
+                ${payload.max_vol}, 
+                ${payload.lat}, 
+                ${payload.long},
+                DEFAULT,
+                ${CONTAINER_POINT},
+                now(), 
+                now(), 
+                ${payload.cluster_id},
+                ${userId}::uuid
+            )
+            RETURNING *;
+        `
 
-        // TODO(Event) -> send to point notification to user
+        // Achievement Evaluator -> Container Warrior (id: 2)
+        achievement.evaluate(userId, 2);
 
         // Return JSON when success
         return successResponse<WasteContainerType>(
@@ -348,14 +372,6 @@ export const updateContainerStatus = async (userId: string, id: number, status: 
         `;
 
         // TODO(Event) -> send to point notification to user
-
-        if (container[0].status === `ACCEPTED`) {
-            await db.$queryRaw`
-                UPDATE profiles 
-                SET additional_point=additional_point+${container[0].point}
-                WHERE user_id=${userId}::uuid;
-            `
-        }
 
         // Return JSON when success
         return successResponse<WasteContainerType>(

@@ -22,15 +22,15 @@ export const getUsers = async (
             FROM auth.users as u 
                 FULL OUTER JOIN profiles AS p ON u.id = p.user_id 
                 FULL OUTER JOIN (
-                    SELECT user_id, point FROM waste_collects
+                    SELECT user_id, point FROM waste_collects WHERE status='ACCEPTED'
                     UNION ALL
-                    SELECT user_id, point FROM waste_reports
+                    SELECT user_id, point FROM waste_reports WHERE status='ACCEPTED'
                     UNION ALL
                     SELECT user_id, point FROM quiz_logs
                     UNION ALL
-                    SELECT user_id, point FROM quests_log
+                    SELECT user_id, point FROM quests_logs
                     UNION ALL 
-                    SELECT user_id, additional_point as point FROM profiles
+                    SELECT user_id, point FROM waste_containers WHERE status='ACCEPTED'
                 ) f on u.id = f.user_id
             GROUP BY 
                 u.id,
@@ -73,15 +73,15 @@ export const getUserById = async (id: string) => {
             FROM auth.users as u 
                 FULL OUTER JOIN profiles AS p ON u.id = p.user_id 
                 FULL OUTER JOIN (
-                    SELECT user_id, point FROM waste_collects
+                    SELECT user_id, point FROM waste_collects WHERE status='ACCEPTED'
                     UNION ALL
-                    SELECT user_id, point FROM waste_reports
+                    SELECT user_id, point FROM waste_reports WHERE status='ACCEPTED'
                     UNION ALL
                     SELECT user_id, point FROM quiz_logs
                     UNION ALL
-                    SELECT user_id, point FROM quests_log
+                    SELECT user_id, point FROM quests_logs
                     UNION ALL 
-                    SELECT user_id, additional_point as point FROM profiles
+                    SELECT user_id, point FROM waste_containers WHERE status='ACCEPTED'
                 ) f on u.id = f.user_id
             WHERE u.id=${id}::uuid
             GROUP BY 

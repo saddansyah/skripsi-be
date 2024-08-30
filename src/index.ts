@@ -14,6 +14,8 @@ import user from "./modules/user";
 import quiz from "./modules/quiz";
 import quest from "./modules/quest";
 import storage from "./modules/storage";
+import notification from "./modules/notification";
+import evidenceRating from "./modules/evidenceRating";
 
 // Utilities
 import { errorResponse } from "./utils/responseBuilder";
@@ -43,8 +45,10 @@ const app = new Elysia()
     app
       .use(auth)
       .use(flashcard)
+      .use(notification)
       // authenticated routes
       .use(container)
+      .use(evidenceRating)
       .use(storage)
       .use(profile)
       .use(achievement)
