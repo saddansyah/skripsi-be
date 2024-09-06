@@ -11,7 +11,7 @@ import { getNextRank, getRankByPoint } from "../../utils/constants/ranks";
 export const getMyProfile = async (userId: string) => {
     try {
         const profile = await db.$queryRaw<ProfileType[]>`
-            SELECT u.id, u.raw_user_meta_data, p.is_admin, u.last_sign_in_at, SUM(f.point)::int4 as total_points 
+            SELECT u.id, u.raw_user_meta_data, p.is_admin, u.last_sign_in_at, CASE WHEN SUM(f.point)::int4 IS NULL THEN 0 ELSE SUM(f.point)::int4 END as total_points 
             FROM auth.users as u 
                 FULL OUTER JOIN profiles AS p ON u.id = p.user_id 
                 FULL OUTER JOIN (
@@ -62,9 +62,9 @@ export const getLeaderboard = async (userId: string, options?: { limit?: number 
 
         const leaderboard = await db.$queryRaw<Partial<Static<typeof ProfileSchema>>[]>`
             with users_with_point as ( 
-                SELECT u.id, u.raw_user_meta_data -> 'name' as name, u.raw_user_meta_data -> 'avatar_url' as img, SUM(f.point)::int4 AS total_point
+                SELECT u.id, u.raw_user_meta_data -> 'name' as name, u.raw_user_meta_data -> 'avatar_url' as img, CASE WHEN SUM(f.point)::int4 IS NULL THEN 0 ELSE SUM(f.point)::int4 END AS total_point
                             FROM auth.users AS u 
-                            INNER JOIN (
+                            LEFT JOIN (
                                 SELECT user_id, point FROM waste_collects WHERE status='ACCEPTED'
                                 UNION ALL
                                 SELECT user_id, point FROM waste_reports WHERE status='ACCEPTED'
@@ -87,6 +87,13 @@ export const getLeaderboard = async (userId: string, options?: { limit?: number 
             order by total_point desc;
         `;
 
+        console.log(leaderboard);
+
+        // const rank = getRankByPoint(profile[0].total_points);
+        // const nextRank = getNextRank(rank);
+        // const nextPoint = nextRank.sum_point - profile[0].total_points;
+        // console.log(nextPoint);
+
         // Return JSON when success
         return successResponse<Partial<Static<typeof ProfileSchema>>>(
             {
@@ -94,6 +101,16 @@ export const getLeaderboard = async (userId: string, options?: { limit?: number 
                 data: leaderboard
             }
         )
+
+
+
+        // Return JSON when success
+        // return successResponse<ProfileType>(
+        //     {
+        //         message: "Your profile is ready",
+        //         data: [{ ...profile[0], rank: rank?.title ?? 'Environmental Noobie', next_rank: nextRank?.title, next_point: nextPoint < 0 ? 0 : nextPoint }]
+        //     }
+        // )
     }
     catch (e: any) {
         switch (e.constructor) {

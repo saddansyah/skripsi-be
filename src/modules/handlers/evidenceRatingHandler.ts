@@ -6,12 +6,46 @@ import { EvidenceRatingCountType, EvidenceRatingType } from "../../models/Eviden
 import { RATING_POINT } from "../../utils/constants/point";
 import * as achievement from '../../utils/achievement';
 
+export const getContainerRatings = async (containerId: number) => {
+    try {
+        const ratings = await db.$queryRaw<EvidenceRatingCountType[]>`
+            SELECT er.*, u.raw_user_meta_data -> 'name' AS user_name 
+            FROM evidence_ratings AS er INNER JOIN auth.users AS u ON er.user_id = u.id
+            WHERE er.container_id=${containerId}
+        `
+
+        if (ratings.length == 0) {
+            return successResponse<EvidenceRatingCountType>(
+                {
+                    message: "Rating is empty",
+                    data: ratings
+                }
+            )
+        }
+
+        // Return JSON when success
+        return successResponse<EvidenceRatingCountType>(
+            {
+                message: `Rating of container with ID ${containerId} is ready`,
+                data: ratings
+            }
+        )
+    }
+    catch (e: any) {
+        switch (e.constructor) {
+            case Prisma.PrismaClientKnownRequestError:
+                throw new ErrorWithStatus(e.message, 500);
+            default:
+                throw new ErrorWithStatus(e.message, e.status, e.name);
+        }
+    }
+}
+
 export const getContainerRating = async (containerId: number, userId: string) => {
     try {
         const ratings = await db.$queryRaw<EvidenceRatingCountType[]>`
             SELECT er.* FROM evidence_ratings AS er
             WHERE er.container_id=${containerId} AND er.user_id=${userId}::uuid
-            LIMIT 1;
         `
 
         if (ratings.length == 0) {

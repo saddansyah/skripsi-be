@@ -84,8 +84,15 @@ export const checkQuizStatus = async (userId: string) => {
         `
 
         if (quiz.length == 0) {
-            throw new ErrorWithStatus('Quiz is not found', 404);
+            return successResponse<QuizStatusType>(
+                {
+                    message: "Your quiz status is empty",
+                    data: [{ created_at: new Date(), next_date: new Date() }]
+                }
+            )
         }
+
+        console.log(quiz);
 
         return successResponse<QuizStatusType>(
             {

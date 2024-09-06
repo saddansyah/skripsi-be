@@ -18,7 +18,7 @@ export const getUsers = async (
         const offset = ((options?.page ?? 1) - 1) * (limit);
 
         const users = await db.$queryRaw<(ProfileType & { 'updated_at': string, 'created_at': string })[]>`
-            SELECT u.id, u.raw_user_meta_data, p.is_admin, SUM(f.point)::int4 as total_points, u.last_sign_in_at, u.created_at, u.updated_at
+            SELECT u.id, u.raw_user_meta_data, p.is_admin, CASE WHEN SUM(f.point)::int4 IS NULL THEN 0 ELSE SUM(f.point)::int4 END as total_points, u.last_sign_in_at, u.created_at, u.updated_at
             FROM auth.users as u 
                 FULL OUTER JOIN profiles AS p ON u.id = p.user_id 
                 FULL OUTER JOIN (
@@ -69,7 +69,7 @@ export const getUserById = async (id: string) => {
 
     try {
         const users = await db.$queryRaw<(ProfileType & { 'updated_at': string, 'created_at': string })[]>`
-            SELECT u.id, u.raw_user_meta_data, p.is_admin, SUM(f.point)::int4 as total_points, u.last_sign_in_at, u.created_at, u.updated_at
+            SELECT u.id, u.raw_user_meta_data, p.is_admin, CASE WHEN SUM(f.point)::int4 IS NULL THEN 0 ELSE SUM(f.point)::int4 END as total_points, u.last_sign_in_at, u.created_at, u.updated_at
             FROM auth.users as u 
                 FULL OUTER JOIN profiles AS p ON u.id = p.user_id 
                 FULL OUTER JOIN (

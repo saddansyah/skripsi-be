@@ -41,6 +41,7 @@ export const evaluate = async (userId: string, achievementId: number) => {
                     WHERE
                         cn.user_id=${userId}::uuid;
                 `;
+                                break;
             case 3:
                 achievement = await db.$queryRaw<ShouldAwardType[]>`
                     SELECT
@@ -56,14 +57,13 @@ export const evaluate = async (userId: string, achievementId: number) => {
                     WHERE
                         er.user_id=${userId}::uuid;
                 `
+                break;
             default:
                 achievement = await db.$queryRaw<ShouldAwardType[]>`
                     SELECT FALSE AS should_award
                 `;
                 break;
         }
-
-
 
         if (achievement[0].should_award) {
             // Assigned Achievement table has notification webhook
