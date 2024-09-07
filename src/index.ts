@@ -16,6 +16,7 @@ import quest from "./modules/quest";
 import storage from "./modules/storage";
 import notification from "./modules/notification";
 import evidenceRating from "./modules/evidenceRating";
+import dailySignIn from "./modules/dailySignIn";
 
 // Utilities
 import { errorResponse } from "./utils/responseBuilder";
@@ -49,6 +50,7 @@ const app = new Elysia()
       // authenticated routes
       .use(container)
       .use(evidenceRating)
+      .use(dailySignIn)
       .use(storage)
       .use(profile)
       .use(achievement)

@@ -11,11 +11,11 @@ END $$;
 
 
 -- Delete all policies
--- DO $$ 
--- DECLARE
---   r RECORD;
--- BEGIN
---   FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
---     EXECUTE format('DROP POLICY IF EXISTS no_anon_access ON public.%I;', r.tablename);
---   END LOOP;
--- END $$;
+DO $$ 
+DECLARE
+  r RECORD;
+BEGIN
+  FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+    EXECUTE format('DROP POLICY IF EXISTS no_anon_access ON public.%I;', r.tablename);
+  END LOOP;
+END $$;

@@ -6,6 +6,7 @@ import db from "../../db/instance";
 import { QUIZ_POINT } from "../../utils/constants/point";
 import { Static } from "elysia";
 import { hash, verify } from "../../utils/hash";
+import { randomIntFromInterval } from "../../utils/random";
 
 type UserQuizType = Omit<QuizType, 'created_at' | 'updated_at' | 'answer'>
 
@@ -113,7 +114,6 @@ export const checkQuizStatus = async (userId: string) => {
 
 export const checkAnswerAndAddQuizLog = async (userId: string, payload: Static<typeof QuizLogPayload>) => {
     try {
-
         const isMatch = await verify(`${payload.quiz_id};${userId}`, payload.unique_id);
 
         if (!isMatch)
@@ -141,7 +141,7 @@ export const checkAnswerAndAddQuizLog = async (userId: string, payload: Static<t
             INSERT INTO quiz_logs
             VALUES (
                 DEFAULT,
-                ${QUIZ_POINT},
+                ${randomIntFromInterval(1, 10)},
                 now(),
                 ${userId}::uuid,
                 ${payload.quiz_id}

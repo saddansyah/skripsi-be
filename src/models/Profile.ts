@@ -17,9 +17,10 @@ export const ProfileSchema = t.Object({
     is_admin: t.Boolean(),
     last_sign_in_at: t.Date(),
     total_points: t.Integer(),
-    rank: t.String(),
+    current_rank: t.String(),
+    current_max_point: t.String(),
     next_rank: t.String(),
-    next_point: t.Integer(),
+    next_max_point: t.String(),
 });
 
 export type ProfileType = Static<typeof ProfileSchema>;

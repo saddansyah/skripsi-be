@@ -9,9 +9,9 @@ import * as achievement from '../../utils/achievement';
 export const getContainerRatings = async (containerId: number) => {
     try {
         const ratings = await db.$queryRaw<EvidenceRatingCountType[]>`
-            SELECT er.*, u.raw_user_meta_data -> 'name' AS user_name 
+            SELECT er.*, u.raw_user_meta_data -> 'name' AS user_name,  u.raw_user_meta_data -> 'avatar_url' AS user_img
             FROM evidence_ratings AS er INNER JOIN auth.users AS u ON er.user_id = u.id
-            WHERE er.container_id=${containerId}
+            WHERE er.container_id=${containerId};
         `
 
         if (ratings.length == 0) {
@@ -44,8 +44,9 @@ export const getContainerRatings = async (containerId: number) => {
 export const getContainerRating = async (containerId: number, userId: string) => {
     try {
         const ratings = await db.$queryRaw<EvidenceRatingCountType[]>`
-            SELECT er.* FROM evidence_ratings AS er
-            WHERE er.container_id=${containerId} AND er.user_id=${userId}::uuid
+            SELECT er.*, u.raw_user_meta_data -> 'name' AS user_name,  u.raw_user_meta_data -> 'avatar_url' AS user_img
+            FROM evidence_ratings AS er INNER JOIN auth.users AS u ON er.user_id = u.id
+            WHERE er.container_id=${containerId} AND er.user_id=${userId}::uuid;
         `
 
         if (ratings.length == 0) {

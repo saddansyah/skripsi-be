@@ -326,6 +326,8 @@ model users {
   quest_log                   QuestLog[]
   quiz_log                    QuizLog[]
   waste_container             WasteContainer[]
+  daily_sign_in_log           DailySignInLog[]
+  streak                      Streak[]
 
   @@index([instance_id])
   @@index([is_anonymous])
@@ -579,6 +581,37 @@ model Learn {
   updated_at DateTime @default(now())
 
   @@map("learns")
+  @@schema("public")
+}
+
+model DailySignInLog {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+  user       users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user_id    String   @db.Uuid
+
+  @@map("daily_sign_in_logs")
+  @@schema("public")
+}
+
+model Rank {
+  id         Int      @id @default(autoincrement())
+  title      String
+  point      Int      @default(0)
+  created_at DateTime @default(now())
+
+  @@map("ranks")
+  @@schema("public")
+}
+
+model Streak {
+  id         Int      @id @default(autoincrement())
+  point      Int      @default(0)
+  created_at DateTime @default(now())
+  user       users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user_id    String   @db.Uuid
+
+  @@map("streaks")
   @@schema("public")
 }
 

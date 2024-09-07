@@ -11,37 +11,65 @@ import { getNextRank, getRankByPoint } from "../../utils/constants/ranks";
 export const getMyProfile = async (userId: string) => {
     try {
         const profile = await db.$queryRaw<ProfileType[]>`
-            SELECT u.id, u.raw_user_meta_data, p.is_admin, u.last_sign_in_at, CASE WHEN SUM(f.point)::int4 IS NULL THEN 0 ELSE SUM(f.point)::int4 END as total_points 
-            FROM auth.users as u 
-                FULL OUTER JOIN profiles AS p ON u.id = p.user_id 
-                FULL OUTER JOIN (
-                    SELECT user_id, point FROM waste_collects WHERE user_id=${userId}::uuid AND status='ACCEPTED'
-                    UNION ALL
-                    SELECT user_id, point FROM waste_reports WHERE user_id=${userId}::uuid AND status='ACCEPTED'
-                    UNION ALL
-                    SELECT user_id, point FROM quiz_logs WHERE user_id=${userId}::uuid
-                    UNION ALL
-                    SELECT user_id, point FROM quests_logs WHERE user_id=${userId}::uuid
-                    UNION ALL 
-                    SELECT user_id, point FROM waste_containers WHERE user_id=${userId}::uuid AND status='ACCEPTED'
-                ) f on u.id = f.user_id
-            WHERE u.id = ${userId}::uuid 
-            GROUP BY 
-                u.id,
-                p.user_id
-            LIMIT 1
+            with users_with_point as ( 
+                SELECT u.id, u.raw_user_meta_data, p.is_admin, u.last_sign_in_at, CASE WHEN SUM(f.point)::int4 IS NULL THEN 0 ELSE SUM(f.point)::int4 END as total_point
+                FROM auth.users as u 
+                    LEFT JOIN profiles AS p ON u.id = p.user_id 
+                    LEFT JOIN (
+                        SELECT user_id, point FROM waste_collects WHERE user_id=${userId}::uuid AND status='ACCEPTED'
+                        UNION ALL
+                        SELECT user_id, point FROM waste_reports WHERE user_id=${userId}::uuid AND status='ACCEPTED'
+                        UNION ALL
+                        SELECT user_id, point FROM quiz_logs WHERE user_id=${userId}::uuid
+                        UNION ALL
+                        SELECT user_id, point FROM quests_logs WHERE user_id=${userId}::uuid
+                        UNION ALL 
+                        SELECT user_id, point FROM waste_containers WHERE user_id=${userId}::uuid AND status='ACCEPTED'
+                    ) f on u.id = f.user_id
+                WHERE u.id = ${userId}::uuid 
+                GROUP BY 
+                    u.id,
+                    p.user_id
+                LIMIT 1
+            ),
+            with_rank as ( 
+                SELECT 
+                u.*,
+                r.point as current_max_point, r.title as current_rank
+                FROM users_with_point as u  
+                INNER JOIN ranks as r ON r.point >= u.total_point 
+                WHERE r.point = (
+                    SELECT MIN(r2.point)
+                    FROM ranks r2
+                    WHERE r2.point >= u.total_point
+                )
+            )
+            ,
+            with_next_rank as (
+                SELECT 
+                u.*,
+                r.point as next_max_point, r.title as next_rank
+                FROM with_rank as u 
+                INNER JOIN ranks as r ON r.point >= u.current_max_point
+                WHERE r.point = (
+                    SELECT MIN(r2.point)
+                    FROM ranks r2
+                    WHERE r2.point >= u.current_max_point
+                )
+            )
+
+
+            select * from with_next_rank;
+
         `;
 
-        const rank = getRankByPoint(profile[0].total_points);
-        const nextRank = getNextRank(rank);
-        const nextPoint = nextRank.sum_point - profile[0].total_points;
-        console.log(nextPoint);
+        console.log(profile);
 
         // Return JSON when success
         return successResponse<ProfileType>(
             {
                 message: "Your profile is ready",
-                data: [{ ...profile[0], rank: rank?.title ?? 'Environmental Noobie', next_rank: nextRank?.title, next_point: nextPoint < 0 ? 0 : nextPoint }]
+                data: profile
             }
         )
     }
@@ -79,38 +107,34 @@ export const getLeaderboard = async (userId: string, options?: { limit?: number 
                             u.id
                         ORDER BY total_point DESC
                 ),
-            top_users as (select * from users_with_point limit ${limit}),
-            me as (select * from users_with_point where id=${userId}::uuid),
+            with_rank as ( 
+                SELECT 
+                u.*,
+                r.point as current_max_point, r.title as current_rank,
+                ROW_NUMBER() OVER (ORDER BY u.total_point DESC)::int4 rank_number
+                FROM users_with_point as u  
+                INNER JOIN ranks as r ON r.point >= u.total_point
+                WHERE r.point = (
+                    SELECT MIN(r2.point)
+                    FROM ranks r2
+                    WHERE r2.point >= u.total_point
+                )
+            ), 
+            top_users as (select * from with_rank limit ${limit}),
+            me as (select * from with_rank where id=${userId}::uuid),
             result as (select * from top_users union all select * from me WHERE me.id NOT IN (SELECT id FROM top_users))
 
             select * from result
             order by total_point desc;
         `;
 
-        console.log(leaderboard);
-
-        // const rank = getRankByPoint(profile[0].total_points);
-        // const nextRank = getNextRank(rank);
-        // const nextPoint = nextRank.sum_point - profile[0].total_points;
-        // console.log(nextPoint);
-
         // Return JSON when success
         return successResponse<Partial<Static<typeof ProfileSchema>>>(
             {
                 message: "Leaderboard is ready",
-                data: leaderboard
+                data: [...leaderboard]
             }
         )
-
-
-
-        // Return JSON when success
-        // return successResponse<ProfileType>(
-        //     {
-        //         message: "Your profile is ready",
-        //         data: [{ ...profile[0], rank: rank?.title ?? 'Environmental Noobie', next_rank: nextRank?.title, next_point: nextPoint < 0 ? 0 : nextPoint }]
-        //     }
-        // )
     }
     catch (e: any) {
         switch (e.constructor) {
