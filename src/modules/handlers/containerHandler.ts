@@ -60,7 +60,7 @@ export const getContainers = async (
         cluster_id?: number
     }) => {
     try {
-        const limit = options?.limit ?? 10;
+        const limit = options?.limit ?? 50;
         const offset = ((options?.page ?? 1) - 1) * (limit);
 
         // Database querys

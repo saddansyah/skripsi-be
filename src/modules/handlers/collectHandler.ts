@@ -62,7 +62,7 @@ export const getMyWasteCollects = async (
     }) => {
 
     try {
-        const limit = options?.limit ?? 10;
+        const limit = options?.limit ?? 50;
         const offset = ((options?.page ?? 1) - 1) * (limit);
 
         const collects = await db.$queryRaw<WasteCollectType[]>`
@@ -276,7 +276,7 @@ export const getWasteCollects = async (
     }) => {
 
     try {
-        const limit = options?.limit ?? 10;
+        const limit = options?.limit ?? 50;
         const offset = ((options?.page ?? 1) - 1) * (limit);
 
         const collects = await db.$queryRaw<WasteCollectType[]>`

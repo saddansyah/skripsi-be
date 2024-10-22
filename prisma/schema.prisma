@@ -401,7 +401,7 @@ model WasteContainer {
   point           Int
   created_at      DateTime         @default(now())
   updated_at      DateTime         @default(now())
-  cluster         WasteCluster     @relation(fields: [cluster_id], references: [id])
+  cluster         WasteCluster     @relation(fields: [cluster_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   cluster_id      Int
   user            users            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user_id         String           @db.Uuid
@@ -424,7 +424,7 @@ model WasteCollect {
   status       Status         @default(PENDING)
   created_at   DateTime       @default(now())
   updated_at   DateTime       @default(now())
-  container    WasteContainer @relation(fields: [container_id], references: [id])
+  container    WasteContainer @relation(fields: [container_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   container_id Int
   user         users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user_id      String         @db.Uuid
@@ -546,7 +546,7 @@ model AssignedAchievement {
   created_at     DateTime    @default(now())
   user           users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user_id        String      @db.Uuid
-  achievement    Achievement @relation(fields: [achievement_id], references: [id])
+  achievement    Achievement @relation(fields: [achievement_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   achievement_id Int
 
   @@id(name: "ach_user_id", [achievement_id, user_id])
@@ -562,7 +562,7 @@ model EvidenceRating {
   created_at   DateTime       @default(now())
   user         users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user_id      String         @db.Uuid
-  container    WasteContainer @relation(fields: [container_id], references: [id])
+  container    WasteContainer @relation(fields: [container_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   container_id Int
 
   @@id(name: "con_user_id", [container_id, user_id])

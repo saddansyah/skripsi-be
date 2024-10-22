@@ -6,7 +6,6 @@ import { AssignedAchievementType } from "../../models/Achievement";
 import { ProfileSchema, ProfileType } from "../../models/Profile";
 import { ErrorWithStatus } from "../../utils/exceptionBuilder";
 import { successResponse } from "../../utils/responseBuilder";
-import { getNextRank, getRankByPoint } from "../../utils/constants/ranks";
 
 export const getMyProfile = async (userId: string) => {
     try {
@@ -50,11 +49,11 @@ export const getMyProfile = async (userId: string) => {
                 u.*,
                 r.point as next_max_point, r.title as next_rank
                 FROM with_rank as u 
-                INNER JOIN ranks as r ON r.point >= u.current_max_point
+                INNER JOIN ranks as r ON r.point > u.current_max_point
                 WHERE r.point = (
                     SELECT MIN(r2.point)
                     FROM ranks r2
-                    WHERE r2.point >= u.current_max_point
+                    WHERE r2.point > u.current_max_point
                 )
             )
 

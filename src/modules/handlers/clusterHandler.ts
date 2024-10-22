@@ -14,7 +14,7 @@ export const getClusters = async (
 
     try {
 
-        const limit = options?.limit ?? 10;
+        const limit = options?.limit ?? 50;
         const offset = ((options?.page ?? 1) - 1) * (limit);
 
         const clusters = await db.$queryRaw<WasteClusterType[]>`
