@@ -1,4 +1,4 @@
-# \<Project-Name\>
+# Skripsi-BE
 Back-end Repository
 
 ## Run migration with name argument
