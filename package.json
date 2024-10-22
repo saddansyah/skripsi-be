@@ -3,19 +3,30 @@
   "version": "1.0.50",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "NODE_ENV=development bun --env-file:../.env.development run --watch src/index.ts",
-    "prod": "NODE_ENV=production bun --env-file:../.env.production run --watch src/index.ts",
-    "db-migrate-local": "bunx prisma migrate dev",
-    "db-migrate-prod": "bunx prisma migrate deploy",
-    "db-seed": "bunx prisma db seed"
+    "dev": "NODE_ENV=development bun run --watch src/index.ts",
+    "prod": "bun run --watch src/index.ts",
+    "db:migrate": "bunx prisma migrate dev --name $NAME",
+    "db:migrate:apply": "bunx prisma migrate dev",
+    "db:migrate:create-only": "bunx prisma migrate dev --name $NAME --create-only",
+    "db:migrate:deploy": "bunx prisma migrate deploy",
+    "db:migrate:resolve": "bunx prisma migrate resolve --applied $APPLIED",
+    "db:pull": "bunx prisma db pull",
+    "db:seed": "bunx prisma db seed"
   },
   "dependencies": {
+    "@elysiajs/cors": "^1.0.4",
+    "@elysiajs/stream": "^1.1.0",
     "@prisma/client": "^5.16.1",
+    "@supabase/supabase-js": "^2.44.3",
+    "axios": "^1.7.5",
     "elysia": "latest",
     "prisma": "^5.16.1"
   },
   "devDependencies": {
     "bun-types": "latest"
+  },
+  "prisma": {
+    "seed": "bun ./src/db/seeder.ts"
   },
   "module": "src/index.js"
 }
